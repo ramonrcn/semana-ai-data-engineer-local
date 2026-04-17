@@ -1,103 +1,173 @@
-# Local AI Agent with MCP Orchestration
+# 🚀 Local AI Agent for Data Engineering (Deterministic Architecture)
 
-This project is an implementation of a fully local AI agent capable of executing real tasks using tool orchestration — inspired by systems like Codex and Claude Code, but without relying on paid APIs.
+## 🧠 Overview
 
-## Overview
+This project implements a **fully local AI agent** designed to replicate the behavior of tools like Codex/Claude Code — but with **deterministic execution, full system control, and zero dependency on paid APIs**.
 
-Instead of relying on LLMs to generate answers, this project focuses on building a deterministic system where:
+Instead of relying on prompt engineering alone, this system is built with **software engineering principles**:
 
-- The LLM acts as a **decision layer**
-- A custom MCP server handles **execution**
-- Tools provide **real-world actions** (database, files, etc.)
+- Separation of responsibilities
+- Deterministic execution
+- Tool-driven architecture (Still needs some fixing)
+- Observability and traceability (WIP)
 
-## Architecture
+- OBS: You can find the original readme file at /semana-ai-data-engineer-main
 
+---
 
-User Prompt
-↓
-Agent (Continue)
-↓
-MCP Server (custom)
-↓
-Tools (Postgres, File System, Generators)
-↓
-Structured Output
+## ⚙️ Architecture
 
+```
+User Input
+   ↓
+Agent (decision layer)
+   ↓
+MCP Server (execution layer)
+   ↓
+Tools (SQL / Code / Domain)
+   ↓
+PostgreSQL / Output
+```
 
-## Tech Stack
+### Key Principle
 
-- **Ollama** — local LLM execution
-- **Continue (VSCode)** — agent interface
-- **Custom MCP Server** — orchestration layer
-- **PostgreSQL** — structured data (ledger)
-- **Python** — core implementation
+> The LLM does NOT execute. It orchestrates.
 
-## Key Concepts
+---
 
-### 1. LLM as Orchestrator
+## 🧱 Core Components
 
-The model does not execute logic.  
-It decides which tool to use.
+### 🧠 Agent (Continue + Local LLM)
+- Responsible for **decision making only**
+- Routes requests to appropriate tools
+- No direct execution
 
-### 2. MCP as Execution Layer
+### 🔌 MCP Server (Custom)
+- Central execution engine
+- Handles:
+  - SQL execution
+  - Domain normalization
+  - Code generation
 
-All real operations are handled by MCP:
+### 🛠 Tools
+- `run_sql` → Executes validated queries
+- `schema_reader` → Reads database structure
+- `generator` → Transforms structured data into code
 
-- SQL queries
-- File reading/writing
-- Code generation
+### 🗄 Database
+- PostgreSQL as **single source of truth**
+- No hallucinated schema
 
-### 3. Deterministic Behavior
+---
 
-The system is designed to avoid hallucinations:
+## 🔥 Key Design Decisions
 
-- No direct database access via LLM
-- No code generation without constraints
-- Strict tool routing
-
-### 4. Parser-Based Code Generation
-
-Instead of relying on LLM-generated code:
-
-- SQL schema is parsed
-- Constraints are extracted
-- Domain normalization is applied
-- Code is generated deterministically
-
-## Features
-
-- Local AI agent (no API costs)
-- Real database querying via tools
-- Schema-aware analysis
+### 1. Determinism over intelligence
+- Temperature = 0
 - Structured outputs
-- Deterministic code generation
-- Domain normalization (e.g., `credit_card`, `processing`)
+- Minimal ambiguity
 
-## Design Principles
+### 2. Prompts are contracts
+- Prompts are NOT modified
+- System adapts via architecture, not prompt hacking
 
-- Do not modify prompts — adapt the system
-- Separate decision from execution
-- Prefer determinism over model creativity
-- Treat LLM as a component, not the system
+### 3. Parser over heuristics
+- SQL is parsed and normalized before execution
+- Avoids LLM guessing
 
-## Current Status
+### 4. Domain normalization layer
+- Maps raw SQL → domain concepts
+- Ensures consistency with real system
 
-- Agent fully functional locally
-- MCP server operational
-- SQL execution working
-- Schema parsing implemented
-- Domain normalization in place
+---
 
-## Next Steps
+## ⚠️ Problems Solved
 
-- Byte-level reproducibility for generated code
-- Automatic validation against reference implementations
-- Multi-step planner/executor flow
-- Expansion to full multi-agent system
+- Agent ignoring tools
+- LLM hallucinating schema
+- Non-deterministic outputs
+- Code generation inconsistencies
+- Database vs code mismatch
 
-## Key Insight
+---
 
-> LLM alone is just a smart interface.  
-> LLM + tools is a real system.
+## 📈 Current Status
 
-### You can find the original readme file inside /...-main
+- [x] Local agent working
+- [x] MCP server orchestrating execution
+- [x] Real database queries
+- [x] SQL parser implemented
+- [x] Domain normalization layer
+- [ ] Execution tracing (planned)
+- [ ] Automated evals (planned)
+
+---
+
+## 🔍 Example Flow
+
+**Input:**
+```
+List active credit cards
+```
+
+**Execution:**
+```
+Agent → selects run_sql
+→ MCP validates SQL
+→ Query executed in Postgres
+→ Result normalized
+→ Output returned
+```
+
+---
+
+## 🧪 Roadmap
+
+- [ ] Full execution trace logs
+- [ ] Automated evaluation suite
+- [ ] Specialyzed agents for each kind of task
+- [ ] Deterministic tool router
+- [ ] Generator constraints hardening
+
+---
+
+## 💻 Hardware Requirements
+
+- GPU: RTX 3060 (tested)
+- RAM: 16GB
+- LLM: qwen2.5-coder:7b
+
+---
+
+## 🚀 Why This Project Matters
+
+Most AI projects:
+- Depend on APIs
+- Rely on prompt engineering
+- Are non-deterministic
+
+This project:
+- Runs **fully local**
+- Is **architecturally controlled**
+- Treats LLM as a **component, not a solution**
+
+---
+
+## 📌 Final Note
+
+This is not a demo.
+
+This is a **system design exercise applied to AI engineering** — focused on reliability, control, and real-world applicability.
+
+---
+
+## 🤝 Author
+
+Ramon N.
+
+---
+
+## ⭐ If this project resonates with you
+
+Give it a star, fork it, or reach out — always open to deep technical discussions.
+
