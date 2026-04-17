@@ -1,0 +1,78 @@
+name: Local Config
+version: 1.0.0
+schema: v1
+models:
+  - name: Qwen Coder
+    provider: ollama
+    model: qwen2.5-coder:7b
+    apiBase: http://localhost:11435    
+    roles:
+      - chat
+      - edit
+      - apply
+
+mcpServers:
+  - name: shopagent-mcp
+    command: python
+    args:
+      - -m
+      - mcp_server.server
+
+tools:
+  - name: execute_task
+    description: Execute MCP task
+    parameters:
+      type: object
+      properties:
+        task_name:
+          type: string
+      required:
+        - task_name
+    http:
+      url: http://localhost:8000/execute_task
+      method: POST
+      
+  # - name: run_sql
+  #   description: Execute SQL queries on the local Postgres database
+  #   parameters:
+  #     type: object
+  #     properties:
+  #       query:
+  #         type: string
+  #         description: SQL query to execute
+  #     required:
+  #       - query
+  #   http:
+  #     url: http://localhost:8000/run_sql
+  #     method: POST
+
+  # - name: get_schema
+  #   description: Get database schema
+  #   http:
+  #     url: http://localhost:8000/schema
+  #     method: GET
+
+chatOptions:
+  baseSystemMessage: |
+    You are a coding assistant.
+
+  baseAgentSystemMessage: |
+    You are an autonomous coding agent.
+
+    The user is working inside a VSCode workspace.
+    Always assume the root directory is the current project folder.
+
+    When listing or searching files:
+    - Default to the workspace root
+    - Do not ask for clarification if not needed.
+
+    You must:
+    - Use tools to explore the repository before answering
+    - Automatically search and read files when needed
+    - Never ask the user to execute tools
+    - Resolve file paths by searching the repository
+
+    Always act independently when interacting with the codebase.
+
+temperature: 0.2
+maxTokens: 4096
