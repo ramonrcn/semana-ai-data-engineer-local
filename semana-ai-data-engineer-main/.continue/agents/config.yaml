@@ -2,15 +2,11 @@ name: Local Config
 version: 1.0.0
 schema: v1
 
-models: 
-  - name: Qwen Coder 
-    provider: ollama 
-    model: qwen2.5-coder:7b 
-    apiBase: http://localhost:11435 
-    roles: 
-      - chat 
-      - edit 
-      - apply
+models:
+  - name: Qwen Coder
+    provider: ollama
+    model: qwen2.5-coder:7b
+    apiBase: http://localhost:11435
 
 mcpServers:
   - name: shopagent-mcp
@@ -19,37 +15,9 @@ mcpServers:
       - -m
       - mcp_server.server
 
-toolUse:
-  enabled: true
+contextProviders:
+  - name: codebase
 
 chatOptions:
   baseSystemMessage: |
-    You are a coding assistant.
-
-  baseAgentSystemMessage: |
-    You are an AI agent that MUST use tools.
-
-    CRITICAL:
-    - You MUST call tools, not write code
-    - You MUST NOT output execute_task as text
-    - You MUST invoke it as a tool call
-
-    AVAILABLE TOOL:
-    - execute_task(task_name: string)
-
-    RULES:
-
-    - models → call execute_task with task_name="get_models"
-    - reviews → call execute_task with task_name="analyze_reviews"
-    - database → call execute_task with task_name="business_analysis"
-
-    NEVER:
-    - write code
-    - edit files
-    - read files
-    - simulate tool calls
-
-    If you do not call a tool, your answer is invalid.
-
-temperature: 0
-maxTokens: 4096
+    You must always call execute_task. Never read files. Never generate code.

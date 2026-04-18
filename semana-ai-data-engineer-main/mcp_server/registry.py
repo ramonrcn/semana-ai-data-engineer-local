@@ -8,6 +8,6 @@ TASKS = {
     "business_analysis": business_analysis,
     "reviews_analysis": reviews_analysis,
     "reviews_summary": reviews_summary,
-    "analyze_reviews": analyze_reviews_task,  
+    "analyze_reviews": analyze_reviews_task,
     "get_models": get_models,
 }

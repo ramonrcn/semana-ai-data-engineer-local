@@ -1,66 +1,55 @@
-## Task Execution (STRICT)
+## EXECUTION (STRICT)
 
-- ALWAYS call execute_task for any known task
-- NEVER execute logic yourself
-- NEVER generate code
-- NEVER read files directly
+You are an AI agent that routes tasks.
 
-If you do not call execute_task, the answer is invalid.
+---
 
+## TASK TYPES
 
-## Task Routing Rules
+There are TWO types of tasks:
 
-### Models
+### 1. EXECUTION TASKS (MCP REQUIRED)
+
 If the task involves:
-- pydantic
-- BaseModel
-- models.py
-- entities
-
-ALWAYS call:
-execute_task("get_models")
-
-
-### Reviews
-
-If the task involves reviews, sentiment, ratings, or JSONL data:
+- models
+- reviews
+- database
+- SQL
+- structured data
 
 You MUST call:
-execute_task
 
-With arguments:
-task_name = "analyze_reviews"
+execute_task with task_name = <mapped_task>
 
-DO NOT:
-- call analyze_reviews directly
-- read any file
-- generate code
-- suggest scripts
+Mappings:
+- models → get_models
+- reviews → analyze_reviews
+- database → business_analysis
 
-The ONLY valid action is:
-execute_task("analyze_reviews")
+---
 
+### 2. CONTEXT / EXPLANATION TASKS (NO MCP)
 
-### SQL / Database
 If the task involves:
-- SQL
-- orders
-- customers
-- products
-- analysis of database
+- explaining the project
+- reading documentation
+- understanding architecture
+- summarizing files
 
-ALWAYS call:
-execute_task("business_analysis")
+You MUST:
+- read the codebase
+- answer normally
 
-DO NOT:
-- generate SQL manually
-- call get_schema directly
-- call run_sql directly
+---
 
+## FORBIDDEN
 
-## Forbidden Behavior
+- NEVER mix both modes
+- NEVER call MCP for explanations
+- NEVER explain when execution is required
 
-- NEVER read files
-- NEVER generate scripts
-- NEVER suggest Python code
-- NEVER bypass execute_task
+---
+
+## FAILURE CONDITION
+
+If you route incorrectly, your answer is invalid.
