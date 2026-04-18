@@ -1,36 +1,35 @@
-from mcp_server.registry import TASKS
-import logging
+from typing import Any, Dict
 
-logger = logging.getLogger(__name__)
+from mcp_server.logging_config import get_logger
+
+from mcp_server.tasks.models import get_models
+from mcp_server.tasks.database import business_analysis
+from mcp_server.tasks.reviews import analyze_reviews_task
+
+logger = get_logger(__name__)
 
 
-def run_task(task_name: str) -> dict:
-    logger.info(f"[ORCHESTRATOR] received task: {task_name}")
+TASK_MAP = {
+    "get_models": get_models,
+    "business_analysis": business_analysis,
+    "analyze_reviews": analyze_reviews_task,
+}
 
-    # 🔥 FORÇA fallback inteligente
-    if task_name not in TASKS:
 
-        # 🔥 AUTO-ROUTING (mata o problema do Continue)
-        if "review" in task_name:
-            task_name = "analyze_reviews"
+def run_task(task_name: str, **kwargs) -> Dict[str, Any]:
+    logger.info(f"[ORCHESTRATOR] Received task: {task_name} | kwargs: {kwargs}")
 
-        elif "model" in task_name:
-            task_name = "get_models"
-
-        elif "sql" in task_name or "database" in task_name:
-            task_name = "business_analysis"
-
-        else:
-            logger.error(f"[ORCHESTRATOR] unknown task: {task_name}")
-            return {
-                "status": "error",
-                "message": f"Unknown task: {task_name}"
-            }
+    if task_name not in TASK_MAP:
+        logger.error(f"[ORCHESTRATOR] Unknown task: {task_name}")
+        return {
+            "status": "error",
+            "message": f"Unknown task: {task_name}"
+        }
 
     try:
-        result = TASKS[task_name]()
+        result = TASK_MAP[task_name](**kwargs)
 
-        logger.info(f"[ORCHESTRATOR] success: {task_name}")
+        logger.info(f"[ORCHESTRATOR] Task success: {task_name}")
 
         return {
             "status": "success",
@@ -39,7 +38,7 @@ def run_task(task_name: str) -> dict:
         }
 
     except Exception as e:
-        logger.error(f"[ORCHESTRATOR] error: {str(e)}")
+        logger.exception(f"[ORCHESTRATOR] Task failed: {task_name}")
 
         return {
             "status": "error",
