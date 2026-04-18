@@ -1,10 +1,14 @@
 import os
+import logging
 from mcp_server.services.files import read_file
 from mcp_server.generators.model_generator import generate_models
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 TARGET_PATH = os.path.join(BASE_DIR, "src/day1/models.py")
 SQL_PATH = "gen/init.sql"
+
 
 def get_models():
     path = TARGET_PATH
@@ -13,22 +17,20 @@ def get_models():
     # 1. CHECK: FILE EXISTS
     # -------------------------
     if os.path.exists(path):
-        print("[MCP] models.py já existe — retornando conteúdo")
+        logger.info("[MCP] models.py already exists — returning content")
 
         with open(path, "r", encoding="utf-8") as f:
             content = f.read()
 
         return {
             "status": "exists",
-            "content": content
+            "content": content,
         }
 
-    # 🚨 IMPORTANTE: TUDO ABAIXO SÓ RODA SE NÃO EXISTIR
-
-    print("[MCP] models.py NÃO existe — gerando arquivo")
-
-    from mcp_server.services.files import read_file
-    from mcp_server.generators.model_generator import generate_models
+    # -------------------------
+    # 2. GENERATE FILE
+    # -------------------------
+    logger.info("[MCP] models.py does not exist — generating file")
 
     sql = read_file("gen/init.sql")
     reviews = read_file("gen/shadowtraffic.json")
@@ -40,7 +42,9 @@ def get_models():
     with open(path, "w", encoding="utf-8") as f:
         f.write(code)
 
+    logger.info("[MCP] models.py created successfully")
+
     return {
         "status": "created",
-        "content": code
+        "content": code,
     }

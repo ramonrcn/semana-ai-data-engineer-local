@@ -1,71 +1,90 @@
 from mcp.server.fastmcp import FastMCP
-from mcp_server.registry import TASKS
+from mcp_server.orchestrator import run_task
+from mcp_server.services.db import get_connection
+from mcp_server.logging_config import setup_logging
 import logging
-import psycopg2
 
-# cria servidor MCP
+# -------------------------
+# Setup logging (entrypoint)
+# -------------------------
+setup_logging()
+logger = logging.getLogger(__name__)
+
+# -------------------------
+# MCP Server
+# -------------------------
 mcp = FastMCP("shopagent-mcp")
 
 
-def get_connection():
-    return psycopg2.connect(
-        host="localhost",
-        port=5432,
-        database="shopagent",
-        user="shopagent",
-        password="shopagent"
-    )
+# -------------------------
+# Main tool
+# -------------------------
+@mcp.tool()
+def execute_task(task_name: str, content: str = "") -> dict:
+    return run_task(task_name, content)
 
-def normalize_task(task: str) -> str:
-    task = task.lower().strip()
-
-    if "business" in task:
-        return "business_analysis"
-
-    if "review" in task:
-        return "reviews_summary"
-
-    if "overview" in task or "count" in task:
-        return "data_overview"
-
-    return task
 
 # -------------------------
 # TOOL 1: run_sql
 # -------------------------
 @mcp.tool()
 def run_sql(query: str) -> dict:
-    """Execute a SQL query and return results"""
+    """Execute a SQL query safely"""
 
-    conn = get_connection()
-    cur = conn.cursor()
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
 
-    cur.execute(query)
+        # -------------------------
+        # Basic safety checks
+        # -------------------------
+        forbidden = ["insert", "update", "delete", "drop", "alter"]
+        if any(f in query.lower() for f in forbidden):
+            logger.warning("[SQL] Forbidden operation")
+            return {"status": "error", "message": "Write operations not allowed"}
 
-    columns = [desc[0] for desc in cur.description]
-    rows = cur.fetchall()
+        # -------------------------
+        # Execution
+        # -------------------------
+        cur.execute(query)
 
-    cur.close()
-    conn.close()
+        if cur.description:
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+        else:
+            columns, rows = [], []
 
-    return {
-        "columns": columns,
-        "rows": rows
-    }
+        cur.close()
+        conn.close()
+
+        logger.info("[SQL] Query executed", extra={"rows": len(rows)})
+
+        return {
+            "status": "success",
+            "columns": columns,
+            "rows": rows,
+        }
+
+    except Exception as e:
+        logger.error("[SQL ERROR]", extra={"error": str(e)})
+        return {
+            "status": "error",
+            "message": str(e),
+        }
 
 
 # -------------------------
 # TOOL 2: get_schema
 # -------------------------
 @mcp.tool()
-def get_schema() -> list:
-    """Return database schema"""
+def get_schema() -> dict:
+    """Return structured database schema"""
 
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT table_name, column_name
+        SELECT table_name, column_name, data_type
         FROM information_schema.columns
         WHERE table_schema = 'public'
         ORDER BY table_name, column_name
@@ -76,65 +95,23 @@ def get_schema() -> list:
     cur.close()
     conn.close()
 
-    return rows
+    schema = {}
 
-#---------------
-# TOOL 3: get_reviews
-#---------------
-@mcp.tool()
-def sample_reviews(n: int = 100) -> dict:
-    """Read and analyze reviews from JSONL file"""
+    for table, column, dtype in rows:
+        if table not in schema:
+            schema[table] = {"columns": []}
 
-    import json
-    from collections import Counter
+        schema[table]["columns"].append({
+            "name": column,
+            "type": dtype
+        })
 
-    file_path = "gen/data/reviews/reviews.jsonl"
+    return schema
 
-    reviews = []
-    with open(file_path, "r", encoding="utf-8") as f:
-        for i, line in enumerate(f):
-            if i >= n:
-                break
-            reviews.append(json.loads(line))
-
-    sample = reviews[:10]
-
-    # structure
-    fields = list(sample[0].keys()) if sample else []
-
-    # distributions
-    sentiment_dist = Counter(r.get("sentiment") for r in reviews if "sentiment" in r)
-    rating_dist = Counter(r.get("rating") for r in reviews if "rating" in r)
-
-    return {
-        "sample_reviews": sample,
-        "fields": fields,
-        "sentiment_distribution": dict(sentiment_dist),
-        "rating_distribution": dict(rating_dist),
-    }
-
-#------------
-# Tool 3 execute tasks
-#------------
-@mcp.tool()
-def execute_task(task: str) -> dict:
-    """Execute a predefined task"""
-    task_name = normalize_task(task)
-
-    if task_name not in TASKS:
-        return {"error": f"Task {task} not found"}
-
-    return TASKS[task_name]()
 
 # -------------------------
 # START SERVER
 # -------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
-
-
 if __name__ == "__main__":
-    logging.info("MCP Server is running")
+    logger.info("MCP Server is running")
     mcp.run(transport="stdio")

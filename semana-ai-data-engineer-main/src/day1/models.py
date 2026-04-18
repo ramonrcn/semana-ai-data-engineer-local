@@ -42,3 +42,4 @@ class Review(BaseModel):
     rating: int = Field(ge=1, le=5)
     comment: str
     sentiment: Literal["positive", "neutral", "negative"]
+

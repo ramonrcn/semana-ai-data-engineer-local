@@ -1,14 +1,15 @@
 name: Local Config
 version: 1.0.0
 schema: v1
-models:
-  - name: Qwen Coder
-    provider: ollama
-    model: qwen2.5-coder:7b
-    apiBase: http://localhost:11435    
-    roles:
-      - chat
-      - edit
+
+models: 
+  - name: Qwen Coder 
+    provider: ollama 
+    model: qwen2.5-coder:7b 
+    apiBase: http://localhost:11435 
+    roles: 
+      - chat 
+      - edit 
       - apply
 
 mcpServers:
@@ -18,61 +19,37 @@ mcpServers:
       - -m
       - mcp_server.server
 
-tools:
-  - name: execute_task
-    description: Execute MCP task
-    parameters:
-      type: object
-      properties:
-        task_name:
-          type: string
-      required:
-        - task_name
-    http:
-      url: http://localhost:8000/execute_task
-      method: POST
-      
-  # - name: run_sql
-  #   description: Execute SQL queries on the local Postgres database
-  #   parameters:
-  #     type: object
-  #     properties:
-  #       query:
-  #         type: string
-  #         description: SQL query to execute
-  #     required:
-  #       - query
-  #   http:
-  #     url: http://localhost:8000/run_sql
-  #     method: POST
-
-  # - name: get_schema
-  #   description: Get database schema
-  #   http:
-  #     url: http://localhost:8000/schema
-  #     method: GET
+toolUse:
+  enabled: true
 
 chatOptions:
   baseSystemMessage: |
     You are a coding assistant.
 
   baseAgentSystemMessage: |
-    You are an autonomous coding agent.
+    You are an AI agent that MUST use tools.
 
-    The user is working inside a VSCode workspace.
-    Always assume the root directory is the current project folder.
+    CRITICAL:
+    - You MUST call tools, not write code
+    - You MUST NOT output execute_task as text
+    - You MUST invoke it as a tool call
 
-    When listing or searching files:
-    - Default to the workspace root
-    - Do not ask for clarification if not needed.
+    AVAILABLE TOOL:
+    - execute_task(task_name: string)
 
-    You must:
-    - Use tools to explore the repository before answering
-    - Automatically search and read files when needed
-    - Never ask the user to execute tools
-    - Resolve file paths by searching the repository
+    RULES:
 
-    Always act independently when interacting with the codebase.
+    - models → call execute_task with task_name="get_models"
+    - reviews → call execute_task with task_name="analyze_reviews"
+    - database → call execute_task with task_name="business_analysis"
 
-temperature: 0.2
+    NEVER:
+    - write code
+    - edit files
+    - read files
+    - simulate tool calls
+
+    If you do not call a tool, your answer is invalid.
+
+temperature: 0
 maxTokens: 4096
