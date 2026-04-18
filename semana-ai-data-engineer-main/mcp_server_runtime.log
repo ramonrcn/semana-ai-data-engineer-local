@@ -1,0 +1,12 @@
+[2026-04-18 11:50:39,024] [INFO] [__main__] [LOGGER INIT] Writing logs to: D:\Studies\semana-ai-data-engineer-local\semana-ai-data-engineer-main\mcp_server_runtime.log
+[2026-04-18 11:50:39,024] [INFO] [__main__] 🔥 SERVER MODULE IMPORTED (THIS MUST APPEAR)
+[2026-04-18 11:50:39,033] [INFO] [__main__] 🚀 MCP START
+[2026-04-18 11:50:39,034] [INFO] [__main__] [TOOLS REGISTERED]
+[2026-04-18 11:50:39,034] [INFO] [__main__]  - execute_task
+[2026-04-18 11:50:39,034] [INFO] [__main__] 🟢 MCP READY
+[2026-04-18 11:51:28,567] [INFO] [__main__] [LOGGER INIT] Writing logs to: d:\Studies\semana-ai-data-engineer-local\semana-ai-data-engineer-main\mcp_server_runtime.log
+[2026-04-18 11:51:28,567] [INFO] [__main__] 🔥 SERVER MODULE IMPORTED (THIS MUST APPEAR)
+[2026-04-18 11:51:28,577] [INFO] [__main__] 🚀 MCP START
+[2026-04-18 11:51:28,578] [INFO] [__main__] [TOOLS REGISTERED]
+[2026-04-18 11:51:28,578] [INFO] [__main__]  - execute_task
+[2026-04-18 11:51:28,578] [INFO] [__main__] 🟢 MCP READY

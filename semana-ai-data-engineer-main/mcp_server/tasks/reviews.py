@@ -1,12 +1,14 @@
 import json
-import logging
-from mcp_server.services.files import read_jsonl_sample, analyze_reviews
+from itertools import islice
+from collections import Counter
+from mcp_server.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
+FILE_PATH = "gen/data/reviews/reviews.jsonl"
 
 def reviews_analysis():
-    path = "gen/data/reviews/reviews.jsonl"
+    path = FILE_PATH
 
     logger.info("[TRACE] reviews_analysis started")
 
@@ -37,7 +39,7 @@ def reviews_analysis():
 
 
 def reviews_summary():
-    path = "gen/data/reviews/reviews.jsonl"
+    path = FILE_PATH
 
     logger.info("[TRACE] reviews_summary started")
 
@@ -69,44 +71,36 @@ def reviews_summary():
 
 
 def analyze_reviews_task():
-    path = "gen/data/reviews/reviews.jsonl"
+    logger.info("[TASK] analyze_reviews started")
 
-    logger.info("[TRACE] analyze_reviews_task started")
+    samples = []
+    sentiments = Counter()
+    ratings = Counter()
 
-    sample = read_jsonl_sample(path, 100)
+    try:
+        with open(FILE_PATH, "r", encoding="utf-8") as f:
+            lines = list(islice(f, 1000))  # safe cap
 
-    structure = list(sample[0].keys())
+        for i, line in enumerate(lines):
+            data = json.loads(line)
 
-    sentiments, ratings = analyze_reviews(sample)
+            if i < 10:
+                samples.append(data)
 
-    logger.info("[TRACE] analyze_reviews_task finished")
+            sentiments[data.get("sentiment")] += 1
+            ratings[data.get("rating")] += 1
 
-    # 🔥 FORMATAÇÃO BONITA
-    formatted_sample = "\n".join(
-        [
-            f"- Rating: {r['rating']} | Sentiment: {r['sentiment']}\n  \"{r['comment']}\""
-            for r in sample[:10]
-        ]
-    )
+        result = {
+            "sample_reviews": samples,
+            "structure": list(samples[0].keys()) if samples else [],
+            "sentiment_distribution": dict(sentiments),
+            "rating_distribution": dict(ratings),
+        }
 
-    sentiment_str = "\n".join(
-        [f"- {k}: {v}" for k, v in sentiments.items()]
-    )
+        logger.info("[TASK] analyze_reviews completed")
 
-    rating_str = "\n".join(
-        [f"- {k}: {v}" for k, v in ratings.items()]
-    )
+        return result
 
-    return f"""
-Sample of 10 reviews:
-{formatted_sample}
-
-Review structure:
-{', '.join(structure)}
-
-Sentiment distribution:
-{sentiment_str}
-
-Rating distribution:
-{rating_str}
-"""
+    except Exception as e:
+        logger.exception("[TASK] analyze_reviews failed")
+        raise e

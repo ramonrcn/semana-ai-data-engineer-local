@@ -12,8 +12,7 @@ mcpServers:
   - name: shopagent-mcp
     command: python
     args:
-      - -m
-      - mcp_server.server
+      - mcp_server/server.py
 
 tools:
   - name: execute_task
@@ -29,7 +28,8 @@ tools:
       server: shopagent-mcp
       tool: execute_task
       force: true   
-
+allowedTools:
+  - execute_task
 # tools:
 #   - name: execute_task
 #     description: Execute MCP task

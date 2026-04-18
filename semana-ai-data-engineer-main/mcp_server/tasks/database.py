@@ -1,60 +1,68 @@
 from mcp_server.services.db import get_connection
-import logging
+from mcp_server.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def business_analysis():
-    logger.info("[TRACE] business_analysis started")
+    logger.info("[TASK] business_analysis started")
 
     conn = get_connection()
-    cur = conn.cursor()
+    cursor = conn.cursor()
 
     results = {}
 
-    cur.execute("SELECT AVG(total) FROM orders;")
-    results["avg_order"] = cur.fetchone()[0]
-    logger.debug("[SQL] avg_order computed")
+    try:
+        # 1. Count rows
+        cursor.execute("""
+            SELECT
+                (SELECT COUNT(*) FROM customers),
+                (SELECT COUNT(*) FROM products),
+                (SELECT COUNT(*) FROM orders)
+        """)
+        results["counts"] = cursor.fetchone()
 
-    cur.execute("""
-        SELECT state, COUNT(*) 
-        FROM customers 
-        JOIN orders USING(customer_id)
-        GROUP BY state
-        ORDER BY COUNT(*) DESC
-    """)
-    results["top_states"] = cur.fetchall()
-    logger.debug("[SQL] top_states computed")
+        # 2. Sample customers
+        cursor.execute("""
+            SELECT name, state, segment
+            FROM customers
+            LIMIT 5
+        """)
+        results["customers_sample"] = cursor.fetchall()
 
-    cur.execute("""
-        SELECT 
-        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END)::float 
-        / COUNT(*) * 100
-        FROM orders;
-    """)
-    results["cancel_rate"] = cur.fetchone()[0]
-    logger.debug("[SQL] cancel_rate computed")
+        # 3. Sample orders
+        cursor.execute("""
+            SELECT total, status, payment
+            FROM orders
+            LIMIT 5
+        """)
+        results["orders_sample"] = cursor.fetchall()
 
-    cur.execute("""
-        SELECT payment, COUNT(*) 
-        FROM orders 
-        GROUP BY payment;
-    """)
-    results["payments"] = cur.fetchall()
-    logger.debug("[SQL] payments computed")
+        # 4. Orders by status
+        cursor.execute("""
+            SELECT status, COUNT(*) as count,
+                   ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 2) as pct
+            FROM orders
+            GROUP BY status
+        """)
+        results["orders_distribution"] = cursor.fetchall()
 
-    cur.execute("""
-        SELECT segment, SUM(total)
-        FROM customers
-        JOIN orders USING(customer_id)
-        GROUP BY segment;
-    """)
-    results["revenue"] = cur.fetchall()
-    logger.debug("[SQL] revenue computed")
+        # 5. Customers by state
+        cursor.execute("""
+            SELECT state, COUNT(*)
+            FROM customers
+            GROUP BY state
+        """)
+        results["customers_by_state"] = cursor.fetchall()
 
-    cur.close()
-    conn.close()
+        logger.info("[TASK] business_analysis completed")
 
-    logger.info("[TRACE] business_analysis finished")
+        return results
 
-    return results
+    except Exception as e:
+        logger.exception("[TASK] business_analysis failed")
+        raise e
+
+    finally:
+        cursor.close()
+        conn.close()
