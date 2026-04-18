@@ -2,11 +2,11 @@ name: Local Config
 version: 1.0.0
 schema: v1
 
-models:
-  - name: Qwen Coder
-    provider: ollama
-    model: qwen2.5-coder:7b
-    apiBase: http://localhost:11435
+models: 
+  - name: Qwen Coder 
+    provider: ollama 
+    model: qwen2.5-coder:7b 
+    apiBase: http://localhost:11435 
 
 mcpServers:
   - name: shopagent-mcp
@@ -15,9 +15,83 @@ mcpServers:
       - -m
       - mcp_server.server
 
-contextProviders:
-  - name: codebase
+tools:
+  - name: execute_task
+    description: Execute MCP task
+    parameters:
+      type: object
+      properties:
+        task_name:
+          type: string
+      required:
+        - task_name
+    mcp:
+      server: shopagent-mcp
+      tool: execute_task
+      force: true   
+
+# tools:
+#   - name: execute_task
+#     description: Execute MCP task
+#     parameters:
+#       type: object
+#       properties:
+#         task_name:
+#           type: string
+#       required:
+#         - task_name
+#     mcp:
+#       server: shopagent-mcp
+#       tool: execute_task
+
+contextProviders: []
 
 chatOptions:
   baseSystemMessage: |
-    You must always call execute_task. Never read files. Never generate code.
+    You are a controlled execution agent.
+
+  baseAgentSystemMessage: |
+    CRITICAL:
+
+    You ONLY have ONE tool available:
+    - execute_task
+
+    You MUST NEVER call:
+    - get_models
+    - analyze_reviews
+    - business_analysis
+
+    These are NOT tools.
+
+    They are ONLY values for the parameter task_name.
+
+    CORRECT usage:
+
+    execute_task with:
+    {
+      "task_name": "get_models"
+    }
+
+    execute_task with:
+    {
+      "task_name": "analyze_reviews"
+    }
+
+    execute_task with:
+    {
+      "task_name": "business_analysis"
+    }
+
+    FORBIDDEN:
+
+    - calling get_models directly
+    - calling analyze_reviews directly
+    - calling business_analysis directly
+    - reading files
+    - generating code
+    - inventing data
+
+    If execute_task is not used, the answer is invalid.
+
+temperature: 0
+maxTokens: 4096

@@ -81,16 +81,32 @@ def analyze_reviews_task():
 
     logger.info("[TRACE] analyze_reviews_task finished")
 
+    # 🔥 FORMATAÇÃO BONITA
+    formatted_sample = "\n".join(
+        [
+            f"- Rating: {r['rating']} | Sentiment: {r['sentiment']}\n  \"{r['comment']}\""
+            for r in sample[:10]
+        ]
+    )
+
+    sentiment_str = "\n".join(
+        [f"- {k}: {v}" for k, v in sentiments.items()]
+    )
+
+    rating_str = "\n".join(
+        [f"- {k}: {v}" for k, v in ratings.items()]
+    )
+
     return f"""
-        Sample of 10 reviews:
-        {sample[:10]}
+Sample of 10 reviews:
+{formatted_sample}
 
-        Review structure:
-        {structure}
+Review structure:
+{', '.join(structure)}
 
-        Sentiment distribution:
-        {dict(sentiments)}
+Sentiment distribution:
+{sentiment_str}
 
-        Rating distribution:
-        {dict(ratings)}
-        """
+Rating distribution:
+{rating_str}
+"""

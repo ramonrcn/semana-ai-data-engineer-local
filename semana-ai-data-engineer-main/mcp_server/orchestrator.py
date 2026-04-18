@@ -1,44 +1,48 @@
 from mcp_server.registry import TASKS
-import time
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def run_task(task_name: str, content: str = ""):
-    start = time.time()
+def run_task(task_name: str) -> dict:
+    logger.info(f"[ORCHESTRATOR] received task: {task_name}")
 
-    logger.info("[TRACE] INPUT", extra={"task_name": task_name})
-
+    # 🔥 FORÇA fallback inteligente
     if task_name not in TASKS:
-        logger.error("[ERROR] TASK NOT FOUND", extra={"task_name": task_name})
-        return {
-            "status": "error",
-            "message": f"Task {task_name} not found"
-        }
+
+        # 🔥 AUTO-ROUTING (mata o problema do Continue)
+        if "review" in task_name:
+            task_name = "analyze_reviews"
+
+        elif "model" in task_name:
+            task_name = "get_models"
+
+        elif "sql" in task_name or "database" in task_name:
+            task_name = "business_analysis"
+
+        else:
+            logger.error(f"[ORCHESTRATOR] unknown task: {task_name}")
+            return {
+                "status": "error",
+                "message": f"Unknown task: {task_name}"
+            }
 
     try:
         result = TASKS[task_name]()
-        duration = round(time.time() - start, 3)
 
-        logger.info(
-            "[TRACE] TASK EXECUTED",
-            extra={"task_name": task_name, "duration": duration}
-        )
+        logger.info(f"[ORCHESTRATOR] success: {task_name}")
 
         return {
             "status": "success",
             "task": task_name,
-            "duration": duration,
-            "result": result,
+            "result": result
         }
 
     except Exception as e:
-        logger.error(
-            "[ERROR] TASK FAILED",
-            extra={"task_name": task_name, "error": str(e)}
-        )
+        logger.error(f"[ORCHESTRATOR] error: {str(e)}")
+
         return {
             "status": "error",
-            "message": str(e),
+            "task": task_name,
+            "message": str(e)
         }
