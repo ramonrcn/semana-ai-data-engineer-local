@@ -8,7 +8,7 @@ Instead of relying on prompt engineering alone, this system is built with **soft
 
 - Separation of responsibilities
 - Deterministic execution
-- Tool-driven architecture (Still needs some fixing)
+- Tool-driven architecture 
 - Observability and traceability (WIP)
 
 - OBS: You can find the original readme file at /semana-ai-data-engineer-main
