@@ -2,12 +2,15 @@ from typing import Dict, Any
 from mcp_server.tasks.ping import ping
 from mcp_server.tasks.models import get_models
 from mcp_server.tasks.database import business_analysis
+from mcp_server.tasks.reviews import analyze_reviews
+
 
 
 TASK_MAP = {
     "ping": ping,
     "get_models": get_models,
-    "business_analysis": business_analysis
+    "business_analysis": business_analysis,
+    "analyze_reviews": analyze_reviews,
 }
 
 
