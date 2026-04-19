@@ -1,11 +1,16 @@
 from mcp_server.services.db import get_connection
+from mcp_server.logging_config import get_logger
 
-def business_analysis(**kwargs):
+logger = get_logger(__name__)
+
+def business_analysis(trace_id=None, **kwargs):
+    logger.info("Connecting to DB", extra={"trace_id": trace_id})
     conn = get_connection()
     cursor = conn.cursor()
 
     try:
         # --- counts ---
+        logger.info("Running counts queries", extra={"trace_id": trace_id})
         cursor.execute("SELECT COUNT(*) FROM customers")
         customers_count = cursor.fetchone()[0]
 
@@ -16,6 +21,7 @@ def business_analysis(**kwargs):
         orders_count = cursor.fetchone()[0]
 
         # --- sample customers ---
+        logger.info("Fetching sample customer data", extra={"trace_id": trace_id})
         cursor.execute("""
             SELECT name, state, segment
             FROM customers
@@ -27,6 +33,7 @@ def business_analysis(**kwargs):
         ]
 
         # --- sample orders ---
+        logger.info("Fetching sample orders data", extra={"trace_id": trace_id})
         cursor.execute("""
             SELECT total, status, payment
             FROM orders
@@ -39,6 +46,7 @@ def business_analysis(**kwargs):
         ]
 
         #---Orders Distribution by Status
+        logger.info("Calculating orders distribution by status", extra={"trace_id": trace_id})
         cursor.execute("""
             SELECT 
                 status,
@@ -59,6 +67,7 @@ def business_analysis(**kwargs):
         ]
 
         #---Customers Distribution by State
+        logger.info("Calculating customers distribution by state", extra={"trace_id": trace_id})
         cursor.execute("""
             SELECT 
                 state,

@@ -20,7 +20,8 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
-
+/mcp_server/.logs/
 # Data (generated at runtime)
 *.jsonl
 !gen/data/reviews/reviews.jsonl
+
