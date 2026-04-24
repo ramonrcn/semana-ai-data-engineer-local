@@ -1,5 +1,6 @@
 from mcp_server.services.db import get_connection
 from mcp_server.logging_config import get_logger
+from mcp_server.utils.formatters import format_business_analysis
 
 logger = get_logger(__name__)
 
@@ -87,7 +88,7 @@ def business_analysis(trace_id=None, **kwargs):
             for r in cursor.fetchall()
         ]
 
-        return {
+        raw_data = {
             "counts": {
                 "customers": customers_count,
                 "products": products_count,
@@ -98,6 +99,9 @@ def business_analysis(trace_id=None, **kwargs):
             "orders_distribution": orders_distribution,
             "customers_by_state": customers_by_state
         }
+
+        report = format_business_analysis(raw_data)
+        return report
 
     finally:
         cursor.close()

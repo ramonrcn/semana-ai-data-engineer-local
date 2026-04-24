@@ -1,6 +1,6 @@
 import json
-from itertools import islice
 from collections import Counter
+from mcp_server.utils.formatters import format_reviews_analysis
 
 FILE_PATH = "gen/data/reviews/reviews.jsonl"
 
@@ -24,9 +24,15 @@ def analyze_reviews(**kwargs):
 
     structure = list(samples[0].keys()) if samples else []
 
-    return {
+    raw_data = { 
+        "summary":{
         "samples": samples,
         "structure": structure,
         "sentiment_distribution": dict(sentiment_counter),
         "rating_distribution": dict(rating_counter),
+        }
     }
+
+    report = format_reviews_analysis(raw_data)
+
+    return report
