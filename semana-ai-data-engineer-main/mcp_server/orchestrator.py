@@ -17,12 +17,65 @@ TASK_MAP = {
     "analyze_reviews": analyze_reviews,
 }
 
-# NEW — ALIAS NORMALIZER (LLM SAFETY NET)
+# --- ALIAS NORMALIZER ---
 TASK_ALIASES = {
     "models": "get_models",
     "database": "business_analysis",
     "reviews": "analyze_reviews",
 }
+
+
+def normalize_task(task_name: str, kwargs: dict) -> tuple[str, dict]:
+
+    # --- SAFETY: ensure kwargs is always a dict ---
+    if kwargs is None:
+        kwargs = {}
+
+    # ✅ FIX 1: protect against non-dict garbage (Continue sometimes sends weird stuff)
+    if not isinstance(kwargs, dict):
+        kwargs = {"intent": str(kwargs)}
+
+    # --- CLEAN INPUT FROM CONTINUE ---
+    if "kwargs" in kwargs:
+        raw = kwargs.pop("kwargs")
+
+        if isinstance(raw, str):
+            kwargs["intent"] = raw.lower()
+        elif isinstance(raw, dict):
+            kwargs.update(raw)
+
+    # --- SAFETY: normalize intent ---
+    intent = kwargs.get("intent") or ""
+    intent = str(intent).lower()  # ✅ FIX 2: ensure always string
+
+    # --- INTENT CLASSIFICATION ---
+    if task_name == "business_analysis":
+
+        if any(k in intent for k in [
+            "metrics",
+            "average_order_value",
+            "top_3_states",
+            "revenue",
+            "distribution",
+            "percentage",
+            "summary",
+            "executive",
+        ]):
+            kwargs["mode"] = "executive"
+
+        elif any(k in intent for k in [
+            "select",
+            "query",
+            "from",
+            "group by",
+            "limit",
+        ]):
+            kwargs["mode"] = "exploration"
+
+        else:
+            kwargs["mode"] = "exploration"
+
+    return task_name, kwargs
 
 
 def run_task(task_name: str, **kwargs) -> Dict[str, Any]:
@@ -33,21 +86,25 @@ def run_task(task_name: str, **kwargs) -> Dict[str, Any]:
         extra={"trace_id": trace_id}
     )
 
-    # NORMALIZATION STEP
-    normalized_task = TASK_ALIASES.get(task_name, task_name)
+    # --- STEP 0: HARD NORMALIZATION (CRITICAL ENTRY FIX) ---
+    # ✅ FIX 3: normalize full kwargs if someone passes string directly
+    if isinstance(kwargs, str):
+        kwargs = {"intent": kwargs}
 
-    # if task_name == "analyze_reviews" and not kwargs:
-    #     logger.warning(
-    #         "Review task called without proper context",
-    #         extra={"trace_id": trace_id}
-    #     )
+    # existing fix (keep)
+    if isinstance(kwargs.get("kwargs"), str):
+        kwargs["intent"] = kwargs.pop("kwargs")
+
+    # --- STEP 1: ALIAS NORMALIZATION ---
+    normalized_task = TASK_ALIASES.get(task_name, task_name)
 
     if normalized_task != task_name:
         logger.info(
-            f"Normalized task: {task_name} → {normalized_task}",
+            f"Alias normalized: {task_name} → {normalized_task}",
             extra={"trace_id": trace_id}
         )
 
+    # --- STEP 2: VALIDATION ---
     if normalized_task not in TASK_MAP:
         logger.warning(
             f"Unknown task: {normalized_task}",
@@ -56,17 +113,28 @@ def run_task(task_name: str, **kwargs) -> Dict[str, Any]:
 
         return TaskResponse(
             status="error",
+            task=normalized_task,  # ✅ FIX 4: always include task
             message=f"Unknown task: {normalized_task}",
             trace_id=trace_id,
         ).model_dump()
 
     try:
+        # --- STEP 3: PARAM NORMALIZATION ---
+        kwargs["trace_id"] = trace_id
+
+        normalized_task, kwargs = normalize_task(normalized_task, kwargs)
+
         logger.info(
-            f"Executing task: {normalized_task}",
+            f"Executing task: {normalized_task} with kwargs={kwargs}",
             extra={"trace_id": trace_id}
         )
 
-        result = TASK_MAP[normalized_task](trace_id=trace_id, **kwargs)
+        # --- STEP 4: EXECUTION ---
+        result = TASK_MAP[normalized_task](**kwargs)
+
+        # ✅ FIX 5: NEVER allow None result (this caused your crash)
+        if result is None:
+            raise ValueError(f"Task {normalized_task} returned None")
 
         logger.info(
             f"Task completed: {normalized_task}",

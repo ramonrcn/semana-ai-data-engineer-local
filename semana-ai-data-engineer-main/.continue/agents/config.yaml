@@ -20,6 +20,21 @@ mcpServers:
       - -m
       - mcp_server.server
 
+tools:
+  - name: shopagent_mcp_execute_task
+    description: Execute MCP task
+    parameters:
+      type: object
+      properties:
+        task_name:
+          type: string
+        kwargs:
+          type: object
+          additionalProperties: true
+      required:
+        - task_name
+        - kwargs
+
 chatOptions:
   baseSystemMessage: |
    You are a strict execution agent.

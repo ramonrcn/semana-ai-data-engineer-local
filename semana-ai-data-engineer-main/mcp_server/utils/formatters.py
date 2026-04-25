@@ -72,3 +72,39 @@ def format_reviews_analysis(data: dict) -> str:
         )
 
     return "\n".join(lines)
+
+
+def format_business_executive(data: dict) -> str:
+    lines = []
+
+    lines.append("📊 EXECUTIVE SUMMARY\n")
+
+    # --- AVG ORDER VALUE ---
+    lines.append(f"💰 Average Order Value: ${data['avg_order_value']}\n")
+
+    # --- TOP STATES ---
+    lines.append("🏆 Top 3 States by Orders:")
+    for s in data["top_states"]:
+        lines.append(f"- {s['state']}: {s['count']} orders")
+    lines.append("")
+
+    # --- CANCEL RATE ---
+    cancel_rate = next(
+        (x["percentage"] for x in data["orders_distribution"] if x["status"] == "cancelled"),
+        0
+    )
+    lines.append(f"❌ Cancel Rate: {cancel_rate}%\n")
+
+    # --- PAYMENT ---
+    lines.append("💳 Payment Distribution:")
+    for p in data["payment_distribution"]:
+        lines.append(f"- {p['payment']}: {p['count']} ({p['percentage']}%)")
+    lines.append("")
+
+    # --- REVENUE ---
+    lines.append("💼 Revenue by Segment:")
+    for r in data["revenue_by_segment"]:
+        lines.append(f"- {r['segment']}: ${r['revenue']}")
+    lines.append("")
+
+    return "\n".join(lines)
