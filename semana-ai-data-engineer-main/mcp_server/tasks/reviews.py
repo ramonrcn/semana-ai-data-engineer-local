@@ -1,9 +1,10 @@
 import json
+from pathlib import Path
 from collections import Counter
 from mcp_server.utils.formatters import format_reviews_analysis
 
-FILE_PATH = "gen/data/reviews/reviews.jsonl"
-
+BASE_DIR = Path(__file__).resolve().parents[2]
+FILE_PATH = BASE_DIR / "gen" / "data" / "reviews" / "reviews.jsonl"
 
 def analyze_reviews(**kwargs):
     samples = []

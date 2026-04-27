@@ -3,7 +3,7 @@ def format_business_analysis(data: dict) -> str:
 
     # --- COUNTS ---
     counts = data["counts"]
-    lines.append("📊 COUNTS")
+    lines.append("\n📊 COUNTS\n")
     lines.append(f"- Customers: {counts['customers']}")
     lines.append(f"- Products: {counts['products']}")
     lines.append(f"- Orders: {counts['orders']}")
@@ -77,7 +77,7 @@ def format_reviews_analysis(data: dict) -> str:
 def format_business_executive(data: dict) -> str:
     lines = []
 
-    lines.append("📊 EXECUTIVE SUMMARY\n")
+    lines.append("\n📊 EXECUTIVE SUMMARY\n")
 
     # --- AVG ORDER VALUE ---
     lines.append(f"💰 Average Order Value: ${data['avg_order_value']}\n")

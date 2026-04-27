@@ -51,27 +51,39 @@ def normalize_task(task_name: str, kwargs: dict) -> tuple[str, dict]:
     # --- INTENT CLASSIFICATION ---
     if task_name == "business_analysis":
 
+        # --- EXECUTIVE FIRST (HIGH PRIORITY) ---
         if any(k in intent for k in [
             "metrics",
-            "average_order_value",
-            "top_3_states",
+            "average",
+            "avg",
+            "top",
             "revenue",
-            "distribution",
-            "percentage",
             "summary",
-            "executive",
+            "insight",
+            "kpi",
         ]):
             kwargs["mode"] = "executive"
 
+
+        # --- EXPLORATION SECOND ---
         elif any(k in intent for k in [
-            "select",
-            "query",
-            "from",
-            "group by",
-            "limit",
+            "count",
+            "sample",
+            "show",
+            "list",
+            "table",
         ]):
             kwargs["mode"] = "exploration"
 
+        # --- DISTRIBUTION IS CONTEXT-DEPENDENT ---
+        elif "distribution" in intent:
+            # if user is asking metrics → executive
+            if any(k in intent for k in ["payment", "revenue", "percentage"]):
+                kwargs["mode"] = "executive"
+            else:
+                kwargs["mode"] = "exploration"
+
+        # --- FALLBACK ---
         else:
             kwargs["mode"] = "exploration"
 
