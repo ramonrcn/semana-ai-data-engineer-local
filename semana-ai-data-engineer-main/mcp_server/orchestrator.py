@@ -86,6 +86,8 @@ def run_task(task_name: str, **kwargs) -> Dict[str, Any]:
         extra={"trace_id": trace_id}
     )
 
+    logger.info(f"[DEBUG] FINAL KWARGS: {kwargs}", extra={"trace_id": trace_id})
+
     # --- STEP 0: HARD NORMALIZATION (CRITICAL ENTRY FIX) ---
     # ✅ FIX 3: normalize full kwargs if someone passes string directly
     if isinstance(kwargs, str):
