@@ -9,6 +9,8 @@ class RuntimeContext:
 
     capability: Capability
 
+    objective: str
+
     knowledge: list[KnowledgeDocument]
 
     environment_tools: list[str]

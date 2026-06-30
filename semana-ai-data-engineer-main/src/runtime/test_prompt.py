@@ -107,8 +107,7 @@ print(
 # ============================================================================
 
 prompt = runtime.assemble_prompt(
-    CAPABILITY,
-    OBJECTIVE,
+    context,
 )
 
 
@@ -161,6 +160,3 @@ print(
 print(
     f"Prompt file        : {prompt_path}"
 )
-# NOTE:
-# assemble_prompt() currently rebuilds the RuntimeContext internally.
-# This duplication will be removed during the Runtime API Refactoring sprint.

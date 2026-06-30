@@ -1,3 +1,4 @@
+from anthropic.types.beta import beta_managed_agents_agent_tool_config_params
 from .registry import CapabilityRegistry
 from .knowledge.registry import KnowledgeRegistry
 from .knowledge.selector import BaseKnowledgeSelector
@@ -57,6 +58,8 @@ class AgentRuntime:
 
             capability=capability,
 
+            objective=objective,
+
             knowledge=documents,
 
             environment_tools=(
@@ -67,14 +70,8 @@ class AgentRuntime:
 
     def assemble_prompt(
         self,
-        capability_id: str,
-        objective: str
+        context: RuntimeContext,
     ) -> str:
-
-        context = self.build_context(
-            capability_id,
-            objective
-        )
 
         prompt_parts = []
 
@@ -105,7 +102,7 @@ class AgentRuntime:
         )
 
         prompt_parts.append(
-            objective
+            context.objective
         )
 
         return "\n".join(
@@ -115,12 +112,16 @@ class AgentRuntime:
     def run(
         self,
         capability_id: str,
-        objective: str
+        objective: str,
     ):
 
-        prompt = self.assemble_prompt(
+        context = self.build_context(
             capability_id,
-            objective
+            objective,
+        )
+
+        prompt = self.assemble_prompt(
+            context,
         )
 
         return self.llm.invoke(
