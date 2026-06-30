@@ -369,95 +369,6 @@ invoice = Invoice.model_validate_json(llm_response)
 - [LLM Output Validation](../patterns/llm-output-validation.md)
 
 
-## supabase.quick-reference
-
-# Supabase Quick Reference
-
-> Fast lookup tables. For code examples, see linked files.
-> **MCP Validated:** 2026-02-19
-
-## pgvector Operations
-
-| Operation | SQL | Notes |
-|-----------|-----|-------|
-| Enable extension | `CREATE EXTENSION IF NOT EXISTS vector;` | Run once per database |
-| Create vector column | `embedding vector(1536)` | Dimension must match model |
-| Insert embedding | `INSERT INTO docs (embedding) VALUES ($1)` | Pass as array or vector literal |
-| Cosine similarity | `1 - (a <=> b)` | Returns 0..1, higher = more similar |
-| L2 distance | `a <-> b` | Lower = more similar |
-| Inner product | `a <#> b` | Negative inner product |
-| HNSW index | `USING hnsw (col vector_cosine_ops)` | Default choice, auto-optimizes |
-| IVFFlat index | `USING ivfflat (col vector_cosine_ops) WITH (lists = 100)` | Lower memory, needs `lists` tuning |
-
-## RLS Policy Syntax
-
-| Component | Syntax | Example |
-|-----------|--------|---------|
-| Enable RLS | `ALTER TABLE t ENABLE ROW LEVEL SECURITY;` | Required before policies work |
-| SELECT policy | `CREATE POLICY "name" ON t FOR SELECT USING (expr);` | `auth.uid() = user_id` |
-| INSERT policy | `CREATE POLICY "name" ON t FOR INSERT WITH CHECK (expr);` | `auth.uid() = user_id` |
-| UPDATE policy | `FOR UPDATE USING (expr) WITH CHECK (expr);` | Both USING and CHECK needed |
-| DELETE policy | `CREATE POLICY "name" ON t FOR DELETE USING (expr);` | Only USING clause |
-| Current user | `auth.uid()` | Returns UUID of authenticated user |
-| JWT claims | `auth.jwt() ->> 'claim'` | Access custom claims |
-
-## Edge Function Commands
-
-| Command | Purpose |
-|---------|---------|
-| `supabase functions new <name>` | Create new Edge Function |
-| `supabase functions serve` | Local development server |
-| `supabase functions deploy <name>` | Deploy to production |
-| `supabase secrets set KEY=value` | Set environment variable |
-| `supabase secrets list` | List all secrets |
-
-## Supabase CLI Cheat Sheet
-
-| Command | Purpose |
-|---------|---------|
-| `supabase init` | Initialize local project |
-| `supabase start` | Start local Supabase stack |
-| `supabase stop` | Stop local stack |
-| `supabase migration new <name>` | Create migration file |
-| `supabase db reset` | Reset local DB, replay migrations |
-| `supabase db push` | Push migrations to remote |
-| `supabase db diff` | Diff schema changes |
-| `supabase link --project-ref <ref>` | Link to remote project |
-
-## Common Pitfalls
-
-| Don't | Do |
-|-------|-----|
-| Disable RLS for convenience | Design proper policies per table |
-| Use `service_role` key client-side | Use `anon` key client-side, `service_role` server-side |
-| Store embeddings without an index | Add HNSW index immediately after table creation |
-| Hardcode secrets in Edge Functions | Use `Deno.env.get('SECRET')` |
-| Use text search for semantic queries | Use pgvector similarity with proper distance function |
-| Skip migration files | Always use `supabase migration new` |
-
-## Decision Matrix
-
-| Use Case | Choose |
-|----------|--------|
-| Semantic/meaning-based search | pgvector cosine similarity |
-| Keyword/exact match search | PostgreSQL full-text search (tsvector) |
-| < 1M vectors, high recall needed | HNSW index |
-| > 1M vectors, memory constrained | IVFFlat index |
-| Custom API endpoint | Edge Function |
-| Database-triggered logic | PostgreSQL function + trigger |
-| Low-latency client messaging | Realtime Broadcast |
-| Listen to DB changes | Realtime Postgres Changes |
-
-## Related Documentation
-
-| Topic | Path |
-|-------|------|
-| pgvector deep dive | `concepts/pgvector-fundamentals.md` |
-| RLS patterns | `concepts/rls-policies.md` |
-| Edge Functions | `concepts/edge-functions.md` |
-| Full Index | `index.md` |
-
-
 ## langchain.concepts.tools
 
 # Tools
@@ -800,6 +711,127 @@ ask("Clientes satisfeitos com o produto")
 - [Tools](../concepts/tools.md)
 - [Supabase Ledger Queries](../../supabase/patterns/shopagent-ledger-queries.md)
 - [Chainlit Integration](../../chainlit/patterns/langchain-integration.md)
+
+
+## chainlit.patterns.langchain-integration
+
+# LangChain Integration
+
+> **Purpose**: Wrap ShopAgent LangChain/LangGraph agent in Chainlit with streaming and step visibility
+> **MCP Validated**: 2026-04-12
+
+## When to Use
+
+- Day 3-4 Chainlit interface for ShopAgent
+- Connecting LangChain `create_react_agent` to a chat UI
+- Showing tool calls (Supabase SQL, Qdrant search) as expandable steps
+- Token-by-token streaming for responsive UX
+
+## Implementation
+
+```python
+"""ShopAgent Chainlit app with LangChain agent streaming."""
+import chainlit as cl
+from langchain_anthropic import ChatAnthropic
+from langchain.tools import tool
+from langgraph.prebuilt import create_react_agent
+
+
+@tool
+def supabase_execute_sql(query: str) -> str:
+    """Execute SQL for exact data: revenue, counts, averages."""
+    return f"[SQL] {query}"
+
+
+@tool
+def qdrant_semantic_search(question: str) -> str:
+    """Search reviews by meaning: complaints, sentiment, opinions."""
+    return f"[Semantic] {question}"
+
+
+@cl.on_chat_start
+async def start():
+    """Initialize ShopAgent and store in session."""
+    llm = ChatAnthropic(
+        model="claude-sonnet-4-20250514",
+        temperature=0,
+        streaming=True,
+    )
+    agent = create_react_agent(
+        model=llm,
+        tools=[supabase_execute_sql, qdrant_semantic_search],
+    )
+    cl.user_session.set("agent", agent)
+    await cl.Message(
+        content="ShopAgent conectado! Pergunte sobre vendas, clientes ou reviews."
+    ).send()
+
+
+@cl.on_message
+async def main(message: cl.Message):
+    """Stream agent response with tool step visibility."""
+    agent = cl.user_session.get("agent")
+    msg = cl.Message(content="")
+    current_step = None
+
+    async for event in agent.astream_events(
+        {"messages": [{"role": "user", "content": message.content}]},
+        version="v2",
+    ):
+        kind = event["event"]
+
+        # Stream LLM tokens
+        if kind == "on_chat_model_stream":
+            token = event["data"]["chunk"].content
+            if token:
+                await msg.stream_token(token)
+
+        # Show tool call as expandable step
+        elif kind == "on_tool_start":
+            current_step = cl.Step(
+                name=event["name"],
+                type="tool",
+            )
+            await current_step.__aenter__()
+            current_step.input = str(event["data"].get("input", ""))
+
+        # Close tool step with result
+        elif kind == "on_tool_end":
+            if current_step:
+                current_step.output = str(event["data"].get("output", ""))
+                await current_step.__aexit__(None, None, None)
+                current_step = None
+
+    await msg.send()
+```
+
+## Configuration
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| `streaming` | `True` | Required on ChatAnthropic for token streaming |
+| `astream_events version` | `"v2"` | LangGraph event streaming API version |
+| `Step type` | `"tool"` | Shows wrench icon for tool calls |
+
+## Example Usage
+
+```bash
+# Run the Chainlit app
+chainlit run app.py -w
+
+# The UI shows:
+# 1. User types: "Qual o faturamento por estado?"
+# 2. Step appears: [SQL Query] supabase_execute_sql
+#    Input: "SELECT c.state, SUM(o.total)..."
+#    Output: "SP: 127430, RJ: 89210..."
+# 3. Streaming response: "O faturamento por estado é..."
+```
+
+## See Also
+
+- [CrewAI Integration](../patterns/crewai-integration.md)
+- [Lifecycle](../concepts/lifecycle.md)
+- [LangChain ReAct Agent](../../langchain/patterns/react-agent-dual-tools.md)
 
 
 

@@ -3,6 +3,10 @@ from pathlib import Path
 from .knowledge.selector import BaseKnowledgeSelector
 from .knowledge.tfidf import TFIDFKnowledgeSelector
 from .knowledge.lsa import LSAKnowledgeSelector
+from .knowledge.embedding import EmbeddingKnowledgeSelector
+from .embeddings.sentence_transformer import (
+    SentenceTransformerEmbeddingModel,
+)
 # from .knowledge.keyword import KeywordKnowledgeSelector
 # from .knowledge.passthrough import PassthroughKnowledgeSelector
 
@@ -17,7 +21,11 @@ OBJECTIVE = "Create Pydantic models for ShopAgent"
 # Choose the selector under evaluation.
 # ============================================================================
 
-SELECTOR: BaseKnowledgeSelector = LSAKnowledgeSelector(top_k=5, n_components=6)
+SELECTOR: BaseKnowledgeSelector = EmbeddingKnowledgeSelector(
+    embedding_model=SentenceTransformerEmbeddingModel(),
+    top_k=5,
+)
+
 
 # Examples:
 #
