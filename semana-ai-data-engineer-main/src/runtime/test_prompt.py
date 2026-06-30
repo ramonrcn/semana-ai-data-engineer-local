@@ -59,6 +59,23 @@ print(runtime.knowledge_selector.__class__.__name__)
 # ============================================================================
 # Build execution context
 # ============================================================================
+#
+# TEMPORARY TEST:
+# Build the context twice to validate the in-memory embedding cache.
+# The first call should populate the cache.
+# The second call should reuse cached document embeddings.
+#
+# Remove this block after validating the cache.
+# ============================================================================
+
+context = runtime.build_context(
+    CAPABILITY,
+    OBJECTIVE,
+)
+
+print("\n" + "=" * 80)
+print("SECOND CONTEXT BUILD (CACHE VALIDATION)")
+print("=" * 80)
 
 context = runtime.build_context(
     CAPABILITY,
