@@ -1,6 +1,6 @@
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+
 from .models import KnowledgeDocument
 from .vector import VectorKnowledgeSelector
 from ..similarity.base import BaseSimilarityMetric
@@ -14,7 +14,7 @@ class LSAKnowledgeSelector(VectorKnowledgeSelector):
         *,
         top_k: int | None = None,
         n_components: int = 100,
-        similarity: BaseSimilarityMetric | None = None
+        similarity: BaseSimilarityMetric | None = None,
     ) -> None:
 
         super().__init__(similarity)
@@ -22,17 +22,11 @@ class LSAKnowledgeSelector(VectorKnowledgeSelector):
         self._top_k = top_k
         self._n_components = n_components
 
-    def _build_corpus(
-        self,
-        documents: list[KnowledgeDocument],
-    ) -> list[str]:
-        return [document.content for document in documents]
-
     def select(
         self,
         documents,
-        objective=""
-        ):
+        objective="",
+    ):
 
         if not documents:
             return []
@@ -70,34 +64,20 @@ class LSAKnowledgeSelector(VectorKnowledgeSelector):
 
         objective_vector = latent_space[-1].reshape(1, -1)
 
-        scores = self.similarity.score(
-            objective_vector,
-            document_vectors,
-        )
-
-        ranked = sorted(
-            zip(documents, scores),
-            key=lambda item: item[1],
-            reverse=True,
-        )
-
+        # Diagnóstico específico do algoritmo.
         print("\n=== LSA ===")
-        print(f"Components: {max_components}")
+
+        print(
+            f"Components: {max_components}"
+        )
+
         print(
             f"Explained Variance: "
             f"{svd.explained_variance_ratio_.sum():.3f}"
         )
 
-        print("\n=== LSA SCORES ===")
-
-        for document, score in ranked:
-            print(
-                f"{score:.4f} | {document.id}"
-            )
-
-        selected = [doc for doc, _ in ranked]
-
-        if self._top_k is not None:
-            selected = selected[: self._top_k]
-
-        return selected
+        return self._rank_documents(
+            documents,
+            document_vectors,
+            objective_vector,
+        )
