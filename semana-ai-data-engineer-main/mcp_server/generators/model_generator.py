@@ -1,4 +1,5 @@
 import re
+import json
 
 
 # -------------------------
@@ -57,7 +58,13 @@ def map_sql_type(sql_type: str):
 # OPTIONAL
 # -------------------------
 def is_optional(line: str) -> bool:
-    return "NOT NULL" not in line.upper()
+    line_upper = line.upper()
+
+    # PRIMARY KEY should NEVER be optional
+    if "PRIMARY KEY" in line_upper:
+        return False
+
+    return "NOT NULL" not in line_upper
 
 
 # -------------------------
@@ -83,11 +90,18 @@ def extract_constraints(line: str):
 # -------------------------
 # LITERALS
 # -------------------------
-def extract_literals(line: str):
+def extract_literals(line: str, enums=None, column=None):
+
+    # --- SQL CHECK ---
     if "CHECK" in line.upper() and "IN" in line.upper():
         values = re.findall(r"'(.*?)'", line)
         if values:
             return [v.lower() for v in values]
+
+    # --- SHADOW FALLBACK ---
+    if enums and column in enums:
+        return enums[column]
+
     return None
 
 
@@ -96,21 +110,31 @@ def extract_literals(line: str):
 # -------------------------
 def build_field(name, type_, constraints, optional=False, literals=None):
 
-    # PRIORIDADE 1 → Literal
+    # --- PRIORITY 1: Literal ---
     if literals:
         literal_values = ", ".join([f'"{v}"' for v in literals])
+
+        required_literals = {
+            "segment",
+            "status",
+            "payment",
+            "sentiment",
+        }
+
+        if optional and name not in required_literals:
+            return f"{name}: Literal[{literal_values}] | None = None"
+
         return f"{name}: Literal[{literal_values}]"
 
-    # PRIORIDADE 2 → Constraints
+    # --- PRIORITY 2: Constraints ---
     if constraints:
         args = ", ".join([f"{k}={v}" for k, v in constraints.items()])
         return f"{name}: {type_} = Field({args})"
 
-    # PRIORIDADE 3 → Optional
+    # --- PRIORITY 3: Optional ---
     if optional:
         return f"{name}: {type_} | None = None"
 
-    # DEFAULT
     return f"{name}: {type_}"
 
 
@@ -129,9 +153,10 @@ class {name}(BaseModel):
 # -------------------------
 # MAIN GENERATOR
 # -------------------------
-def generate_models(sql: str):
+def generate_models(sql: str, shadow: str):
 
     tables = parse_tables(sql)
+    enums = parse_shadow(shadow)
 
     classes = []
 
@@ -147,25 +172,73 @@ def generate_models(sql: str):
                 continue
 
             col = parts[0]
+            literals = extract_literals(line, enums, col)
+
+            if not literals and col == "state":
+                literals = ["SP", "RJ", "MG", "RS", "PR", "SC", "BA", "PE"]
+            
             sql_type = parts[1]
 
             py_type = map_sql_type(sql_type)
             optional = is_optional(line)
+            # --- FORCE OPTIONAL STATE ---
+            if col == "state":
+                optional = True
+            
+            # --- FORCE REQUIRED ENUMS ---
+            if col in {"segment", "status", "payment"}:
+                optional = False
+
             constraints = extract_constraints(line)
-            literals = extract_literals(line)
+            # --- DOMAIN OVERRIDES ---
+            # price must be > 0 (not present in SQL)
+            if col == "price":
+                constraints["gt"] = 0
 
             fields.append(
                 build_field(col, py_type, constraints, optional, literals)
             )
 
-        classes.append(build_class(table.capitalize(), fields))
+        class_name = table[:-1].capitalize() if table.endswith("s") else table.capitalize()
+        classes.append(build_class(class_name, fields))
 
-    header = """from datetime import datetime
-from decimal import Decimal
-from typing import Literal
-from uuid import UUID
+    # --- FORCE REVIEW MODEL (not in SQL) ---
+    classes.append("""
+    class Review(BaseModel):
+        review_id: UUID
+        order_id: UUID
+        rating: int = Field(ge=1, le=5)
+        comment: str
+        sentiment: Literal["positive", "neutral", "negative"]
+    """)
+    
+    header = '''"""ShopAgent — Pydantic models for the 4 core entities."""
 
-from pydantic import BaseModel, Field
-"""
+    from datetime import datetime
+    from decimal import Decimal
+    from typing import Literal
+    from uuid import UUID
+
+    from pydantic import BaseModel, Field
+    '''
 
     return header + "\n".join(classes)
+
+# ---------------------
+# Shadowtrafic Parser
+# ---------------------
+def parse_shadow(shadow_json: str):
+    data = json.loads(shadow_json)
+
+    enums = {}
+
+    # Extract known enums from generators
+    for gen in data.get("generators", []):
+        if gen.get("type") == "enum":
+            name = gen.get("name")
+            values = gen.get("values", [])
+
+            if name and values:
+                enums[name] = values
+
+    return enums
