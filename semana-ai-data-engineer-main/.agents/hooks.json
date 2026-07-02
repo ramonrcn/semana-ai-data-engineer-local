@@ -1,0 +1,10 @@
+{
+    "runtime-gateway": {
+        "PreInvocation": [
+            {
+                "type": "command",
+                "command": "python D:/Studies/semana-ai-data-engineer-local/semana-ai-data-engineer-main/src/runtime/gateway/antigravity.py"
+            }
+        ]
+    }
+}
