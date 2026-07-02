@@ -18,12 +18,77 @@ def main():
 
     try:
 
-        payload = json.loads(
-            sys.stdin.read()
+        # payload = json.loads(
+        #     sys.stdin.read()
+        # )
+
+        raw = sys.stdin.read()
+
+        (
+            artifacts / "payload_raw.json"
+        ).write_text(
+
+            raw,
+
+            encoding="utf-8",
+
         )
+
+        payload = json.loads(raw)
 
         conversation = parse_payload(
             payload
+        )
+
+        transcript = conversation.load_transcript()
+
+        debug = []
+
+        for event in transcript.events:
+
+            debug.append(
+
+                {
+
+                    "type": event.type,
+
+                    "source": event.source,
+
+                    "status": event.status,
+
+                    "content": event.content,
+
+                }
+
+            )
+
+        (
+            artifacts / "transcript_debug.json"
+        ).write_text(
+
+            json.dumps(
+
+                debug,
+
+                indent=2,
+
+                ensure_ascii=False,
+
+            ),
+
+            encoding="utf-8",
+
+        )
+
+        (
+            artifacts / "last_user_request.txt"
+        ).write_text(
+
+            transcript.last_user_request()
+            or "None",
+
+            encoding="utf-8",
+
         )
 
         (

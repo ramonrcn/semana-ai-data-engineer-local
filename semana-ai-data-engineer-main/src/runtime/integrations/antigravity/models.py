@@ -1,5 +1,10 @@
+from anthropic.resources import messages
 from dataclasses import dataclass
 from pathlib import Path
+import json
+import time
+from .event import ConversationEvent
+from .transcript import ConversationTranscript
 
 
 @dataclass
@@ -32,3 +37,54 @@ class ConversationPayload:
 
             Initial Steps   : {self.initial_steps}
             """
+    
+    def load_transcript(
+        self,
+    ) -> ConversationTranscript:
+
+        events = []
+
+        for _ in range(20):
+
+            if self.transcript_path.exists():
+                break
+
+            time.sleep(0.1)
+
+        else:
+
+            raise FileNotFoundError(
+                self.transcript_path
+            )
+
+        with self.transcript_path.open(
+            encoding="utf-8",
+        ) as file:
+
+            for line in file:
+
+                event = json.loads(
+                    line
+                )
+
+                events.append(
+
+                    ConversationEvent(
+
+                        source=event["source"],
+
+                        type=event["type"],
+
+                        status=event["status"],
+
+                        created_at=event["created_at"],
+
+                        content=event.get("content"),
+
+                    )
+
+                )
+
+        return ConversationTranscript(
+            events=events
+        )

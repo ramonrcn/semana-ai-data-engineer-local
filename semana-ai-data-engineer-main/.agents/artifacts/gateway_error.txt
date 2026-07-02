@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "D:\Studies\semana-ai-data-engineer-local\semana-ai-data-engineer-main\src\runtime\integrations\antigravity\hook.py", line 43, in main
+    transcript = conversation.load_transcript()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Studies\semana-ai-data-engineer-local\semana-ai-data-engineer-main\src\runtime\integrations\antigravity\models.py", line 56, in load_transcript
+    raise FileNotFoundError(
+FileNotFoundError: C:\Users\Pichau\.gemini\antigravity-ide\brain\f392b69d-812b-478e-b03f-9bdc03b7594f\.system_generated\logs\transcript.jsonl
