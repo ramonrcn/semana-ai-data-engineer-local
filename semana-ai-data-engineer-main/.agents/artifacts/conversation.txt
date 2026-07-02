@@ -1,0 +1,13 @@
+
+            Conversation ID : d4ad60a1-89b7-472f-8b89-525db09787a6
+
+            Transcript      : C:\Users\Pichau\.gemini\antigravity-ide\brain\d4ad60a1-89b7-472f-8b89-525db09787a6\.system_generated\logs\transcript.jsonl
+
+            Artifacts       : C:\Users\Pichau\.gemini\antigravity-ide\brain\d4ad60a1-89b7-472f-8b89-525db09787a6
+
+            Workspace       : [WindowsPath('d:/Studies/semana-ai-data-engineer-local/semana-ai-data-engineer-main')]
+
+            Invocation      : 0
+
+            Initial Steps   : 15
+            

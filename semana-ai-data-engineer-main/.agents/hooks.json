@@ -3,7 +3,7 @@
         "PreInvocation": [
             {
                 "type": "command",
-                "command": "python D:/Studies/semana-ai-data-engineer-local/semana-ai-data-engineer-main/src/runtime/gateway/antigravity.py"
+                "command": "python D:/Studies/semana-ai-data-engineer-local/semana-ai-data-engineer-main/run_antigravity_hook.py"
             }
         ]
     }
