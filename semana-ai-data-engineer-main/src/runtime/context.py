@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from .models import Capability
-from .knowledge.models import KnowledgeDocument
+from .knowledge.retrieved import RetrievedKnowledge
 
 
 @dataclass
@@ -11,6 +11,6 @@ class RuntimeContext:
 
     objective: str
 
-    knowledge: list[KnowledgeDocument]
+    knowledge: list[RetrievedKnowledge]
 
     environment_tools: list[str]

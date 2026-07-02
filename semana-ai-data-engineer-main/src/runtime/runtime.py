@@ -14,6 +14,7 @@ from .tracing.printer import TracePrinter
 from .tracing.span import TraceSpan
 from .prompt.base import BasePromptCompiler
 from .prompt.markdown import MarkdownPromptCompiler
+from .knowledge.retrieved import RetrievedKnowledge
 
 
 class AgentRuntime:
@@ -68,13 +69,21 @@ class AgentRuntime:
             )
         )
 
+        retrieved = [
+            RetrievedKnowledge(
+                document=document,
+            )
+
+            for document in documents
+        ]
+
         return RuntimeContext(
 
             capability=capability,
 
             objective=objective,
 
-            knowledge=documents,
+            knowledge=retrieved,
 
             environment_tools=(
                 capability.required_environment_tools()

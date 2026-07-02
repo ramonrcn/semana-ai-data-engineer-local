@@ -28,7 +28,7 @@ VALIDATE_EMBEDDING_CACHE = False
 
 SELECTOR: BaseKnowledgeSelector = EmbeddingKnowledgeSelector(
     embedding_model=SentenceTransformerEmbeddingModel(),
-    top_k=5,
+    top_k=3,
 )
 
 

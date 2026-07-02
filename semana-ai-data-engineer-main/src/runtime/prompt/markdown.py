@@ -11,8 +11,12 @@ class MarkdownPromptCompiler(BasePromptCompiler):
 
         prompt_parts = []
 
+        # =====================================================================
+        # SYSTEM
+        # =====================================================================
+
         prompt_parts.append(
-            "# AGENT\n"
+            "# SYSTEM\n"
         )
 
         prompt_parts.append(
@@ -20,18 +24,26 @@ class MarkdownPromptCompiler(BasePromptCompiler):
         )
 
         prompt_parts.append(
-            "\n\n# KNOWLEDGE\n"
+            """
+            ---
+
+            # EXECUTION RULES
+
+            You MUST answer using ONLY the reference knowledge provided below.
+
+            If the answer cannot be derived from the provided knowledge,
+            explicitly say so instead of inventing information.
+
+            Always prefer the provided documentation over assumptions.
+
+            Do not ignore the reference knowledge.
+
+            """
         )
-
-        for document in context.knowledge:
-
-            prompt_parts.append(
-                f"\n## {document.id}\n"
-            )
-
-            prompt_parts.append(
-                document.content
-            )
+                    
+        # =====================================================================
+        # OBJECTIVE
+        # =====================================================================
 
         prompt_parts.append(
             "\n\n# OBJECTIVE\n"
@@ -40,6 +52,24 @@ class MarkdownPromptCompiler(BasePromptCompiler):
         prompt_parts.append(
             context.objective
         )
+
+        # =====================================================================
+        # REFERENCE KNOWLEDGE
+        # =====================================================================
+
+        prompt_parts.append(
+            "\n\n# REFERENCE KNOWLEDGE\n"
+        )
+
+        for knowledge in context.knowledge:
+
+            prompt_parts.append(
+                f"\n## {knowledge.document.id}\n"
+            )
+
+            prompt_parts.append(
+                knowledge.document.content
+            )
 
         return "\n".join(
             prompt_parts
