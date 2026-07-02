@@ -1,18 +1,18 @@
 from pathlib import Path
 
-from .registry import (
+from src.runtime.registry import (
     CapabilityRegistry
 )
 
-from .knowledge.registry import (
+from src.runtime.knowledge.registry import (
     KnowledgeRegistry
 )
 
-from .runtime import (
+from src.runtime.runtime import (
     AgentRuntime
 )
 
-from .builders.agent_builder import (
+from src.runtime.builders.agent_builder import (
     AgentBuilder
 )
 

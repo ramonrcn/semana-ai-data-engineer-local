@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from .knowledge.selector import BaseKnowledgeSelector
-from .knowledge.tfidf import TFIDFKnowledgeSelector
-from .knowledge.lsa import LSAKnowledgeSelector
-from .knowledge.embedding import EmbeddingKnowledgeSelector
-from .embeddings.sentence_transformer import (
+from src.runtime.knowledge.selector import BaseKnowledgeSelector
+from src.runtime.knowledge.tfidf import TFIDFKnowledgeSelector
+from src.runtime.knowledge.lsa import LSAKnowledgeSelector
+from src.runtime.knowledge.embedding import EmbeddingKnowledgeSelector
+from src.runtime.embeddings.sentence_transformer import (
     SentenceTransformerEmbeddingModel,
 )
 # from .knowledge.keyword import KeywordKnowledgeSelector
@@ -16,6 +16,11 @@ from .testing import build_test_runtime
 CAPABILITY = "domain.shopagent-builder"
 OBJECTIVE = "Create Pydantic models for ShopAgent"
 
+# ============================================================================
+# Debug Flags
+# ============================================================================
+
+VALIDATE_EMBEDDING_CACHE = False
 
 # ============================================================================
 # Choose the selector under evaluation.
@@ -73,14 +78,19 @@ context = runtime.build_context(
     OBJECTIVE,
 )
 
-print("\n" + "=" * 80)
-print("SECOND CONTEXT BUILD (CACHE VALIDATION)")
-print("=" * 80)
+# ============================================================================
+# Optional validation for the in-memory embedding cache.
+# ============================================================================
+if VALIDATE_EMBEDDING_CACHE:
 
-context = runtime.build_context(
-    CAPABILITY,
-    OBJECTIVE,
-)
+    print("\n" + "=" * 80)
+    print("SECOND CONTEXT BUILD (CACHE VALIDATION)")
+    print("=" * 80)
+
+    context = runtime.build_context(
+        CAPABILITY,
+        OBJECTIVE,
+    )
 
 
 print("\n" + "=" * 80)

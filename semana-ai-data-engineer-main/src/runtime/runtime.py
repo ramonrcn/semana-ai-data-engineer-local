@@ -1,3 +1,6 @@
+from IPython.core import events
+from anthropic.types.beta import beta_managed_agents_agent_tool_config_params
+from IPython.core import interactiveshell
 from anthropic.types.beta import beta_managed_agents_agent_tool_config_params
 from .registry import CapabilityRegistry
 from .knowledge.registry import KnowledgeRegistry
@@ -6,6 +9,11 @@ from .knowledge.passthrough import (
     PassthroughKnowledgeSelector
 )
 from .context import RuntimeContext
+from .tracing.trace import RuntimeTrace
+from .tracing.printer import TracePrinter
+from .tracing.span import TraceSpan
+from .prompt.base import BasePromptCompiler
+from .prompt.markdown import MarkdownPromptCompiler
 
 
 class AgentRuntime:
@@ -17,7 +25,8 @@ class AgentRuntime:
         llm,
         knowledge_selector: (
             BaseKnowledgeSelector | None
-        ) = None
+        ) = None,
+        prompt_compiler: BasePromptCompiler | None = None,
     ):
 
         self.capabilities = capability_registry
@@ -30,6 +39,11 @@ class AgentRuntime:
         self.knowledge_selector = (
             knowledge_selector
             or PassthroughKnowledgeSelector()
+        )
+
+        self.prompt_compiler = (
+            prompt_compiler
+            or MarkdownPromptCompiler()
         )
 
     def build_context(
@@ -70,60 +84,78 @@ class AgentRuntime:
 
     def assemble_prompt(
         self,
-        context: RuntimeContext,
-    ) -> str:
+            context: RuntimeContext,
+        ) -> str:
 
-        prompt_parts = []
-
-        prompt_parts.append(
-            "# AGENT\n"
-        )
-
-        prompt_parts.append(
-            context.capability.prompt
-        )
-
-        prompt_parts.append(
-            "\n\n# KNOWLEDGE\n"
-        )
-
-        for document in context.knowledge:
-
-            prompt_parts.append(
-                f"\n## {document.id}\n"
+            return self.prompt_compiler.compile(
+                context
             )
-
-            prompt_parts.append(
-                document.content
-            )
-
-        prompt_parts.append(
-            "\n\n# OBJECTIVE\n"
-        )
-
-        prompt_parts.append(
-            context.objective
-        )
-
-        return "\n".join(
-            prompt_parts
-        )
 
     def run(
         self,
         capability_id: str,
         objective: str,
     ):
+        trace = RuntimeTrace.start()
 
-        context = self.build_context(
-            capability_id,
-            objective,
+        trace.capability = capability_id
+        trace.objective = objective
+
+        trace.knowledge_selector = (
+            self.knowledge_selector.__class__.__name__
         )
 
-        prompt = self.assemble_prompt(
-            context,
-        )
+        trace.llm = self.llm.__class__.__name__
+                
+        with trace.span(
+            "knowledge_selection",
+            selector=trace.knowledge_selector,
+        ) as event:
 
-        return self.llm.invoke(
-            prompt
-        )
+            context = self.build_context(
+                capability_id,
+                objective,
+            )
+
+            trace.knowledge_documents = len(
+                context.knowledge
+            )
+
+            event.add(
+                documents=len(
+                    context.knowledge
+                )
+            )
+
+        with trace.span(
+            "prompt_assembly",
+        ) as event:
+
+            prompt = self.assemble_prompt(
+                context,
+            )
+
+            trace.prompt_size = len(
+                prompt
+            )
+
+            event.add(
+                prompt_size=len(
+                    prompt
+                )
+            )
+        
+        with trace.span(
+            "llm_invocation",
+            provider=trace.llm,
+        ):
+
+            response = self.llm.invoke(
+                prompt
+            )
+
+        trace.finish()
+
+        TracePrinter.print(trace)
+
+        return response
