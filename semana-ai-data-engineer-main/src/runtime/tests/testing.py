@@ -8,6 +8,7 @@ from src.runtime.prompt.base import BasePromptCompiler
 from src.runtime.prompt.markdown import MarkdownPromptCompiler
 from src.runtime.llm.base import BaseLLM
 from src.runtime.llm.fake import FakeLLM
+from src.runtime.bootstrap import build_runtime
 
 
 def build_test_runtime(
@@ -15,35 +16,9 @@ def build_test_runtime(
     selector: BaseKnowledgeSelector | None = None,
     prompt_compiler: BasePromptCompiler | None = None,
 ):
-
-    cap_registry = CapabilityRegistry()
-    cap_registry.load_directory(Path(".claude/agents"))
-
-    kb_registry = KnowledgeRegistry()
-    kb_registry.load_directory(Path(".claude/kb"))
-
-    llm = llm or FakeLLM()
-
-    selector = (
-        selector
-        or PassthroughKnowledgeSelector()
+    return build_runtime(
+        llm=llm,
+        selector=selector,
+        prompt_compiler=prompt_compiler,
     )
-
-    prompt_compiler = (
-        prompt_compiler
-        or MarkdownPromptCompiler()
-    )
-
-    return AgentRuntime(
-
-        cap_registry,
-
-        kb_registry,
-
-        llm,
-
-        selector,
-
-        prompt_compiler,
-
-    )
+   

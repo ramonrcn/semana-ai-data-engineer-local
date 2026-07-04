@@ -1,0 +1,2 @@
+class RuntimeApplication:
+    pass

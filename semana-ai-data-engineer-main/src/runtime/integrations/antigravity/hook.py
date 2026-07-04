@@ -1,9 +1,11 @@
+from src.runtime.integrations.antigravity.error_handler import ErrorHandler
+from src.runtime.integrations.antigravity.artifact_writer import ArtifactWriter
+from src.runtime.application.process_user_request import ProcessUserRequest
 from pathlib import Path
-import json
-import sys
-import traceback
+from datetime import datetime
 
-from .parser import parse_payload
+from .request_reader import RequestReader
+from .error_handler import ErrorHandler
 
 
 def main():
@@ -11,84 +13,39 @@ def main():
     artifacts = Path("artifacts")
     artifacts.mkdir(exist_ok=True)
 
-    Path("artifacts/python_started.txt").write_text(
-        "Python iniciou.",
+    (
+        artifacts / "python_started.txt"
+    ).write_text(
+        datetime.now().isoformat(),
         encoding="utf-8",
     )
 
     try:
 
-        # payload = json.loads(
-        #     sys.stdin.read()
-        # )
+        conversation = RequestReader().read()
 
-        raw = sys.stdin.read()
-
-        (
-            artifacts / "payload_raw.json"
-        ).write_text(
-
-            raw,
-
-            encoding="utf-8",
-
+        result = ProcessUserRequest().execute(
+            conversation=conversation,
         )
 
-        payload = json.loads(raw)
-
-        conversation = parse_payload(
-            payload
+        (
+            artifacts / "runtime_response.md"
+        ).write_text(
+            result.response,
+            encoding="utf-8",
         )
 
-        transcript = conversation.load_transcript()
-
-        debug = []
-
-        for event in transcript.events:
-
-            debug.append(
-
-                {
-
-                    "type": event.type,
-
-                    "source": event.source,
-
-                    "status": event.status,
-
-                    "content": event.content,
-
-                }
-
-            )
-
-        (
-            artifacts / "transcript_debug.json"
-        ).write_text(
-
-            json.dumps(
-
-                debug,
-
-                indent=2,
-
-                ensure_ascii=False,
-
-            ),
-
-            encoding="utf-8",
-
+        ArtifactWriter().write_transcript_debug(
+            result.transcript,
+            artifacts,
         )
 
         (
             artifacts / "last_user_request.txt"
         ).write_text(
-
-            transcript.last_user_request()
+            result.transcript.last_user_request()
             or "None",
-
             encoding="utf-8",
-
         )
 
         (
@@ -103,15 +60,16 @@ def main():
 
     except Exception:
 
-        (
-            artifacts / "gateway_error.txt"
-        ).write_text(
-
-            traceback.format_exc(),
-
-            encoding="utf-8",
-
+        ErrorHandler().handle(
+            artifacts,
         )
+
+    (
+        artifacts / "python_finished.txt"
+    ).write_text(
+        datetime.now().isoformat(),
+        encoding="utf-8",
+    )
 
     print("{}")
 

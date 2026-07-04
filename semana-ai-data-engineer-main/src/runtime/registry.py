@@ -48,8 +48,8 @@ class CapabilityRegistry:
         return sorted(
             self._capabilities.keys()
         )
-    
-    def load_directory(
+
+    def load_directory( #temporary debug prints
         self,
         root: Path
     ):
@@ -60,14 +60,50 @@ class CapabilityRegistry:
                 f"Loading: {file_path}"
             )
 
-            capability = load_capability(
-                file_path
-            )
+            try:
 
-            print(
-                f"Registered: {capability.name}"
-            )
+                capability = load_capability(
+                    file_path
+                )
 
-            self.register(
-                capability
-            )
+                print(
+                    f"Registered: {capability.id}"
+                )
+
+                self.register(
+                    capability
+                )
+
+            except Exception as e:
+
+                print(
+                    f"[ERROR] Failed to load: {file_path}"
+                )
+
+                print(
+                    f"{type(e).__name__}: {e}"
+                )
+
+
+    # def load_directory(
+    #     self,
+    #     root: Path
+    # ):
+
+    #     for file_path in root.rglob("*.md"):
+
+    #         print(
+    #             f"Loading: {file_path}"
+    #         )
+
+    #         capability = load_capability(
+    #             file_path
+    #         )
+
+    #         print(
+    #             f"Registered: {capability.name}"
+    #         )
+
+    #         self.register(
+    #             capability
+    #         )
