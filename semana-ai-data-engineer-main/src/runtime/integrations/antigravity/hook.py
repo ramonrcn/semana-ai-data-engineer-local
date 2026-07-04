@@ -1,3 +1,4 @@
+from src.runtime.bootstrap import build_runtime
 from src.runtime.integrations.antigravity.error_handler import ErrorHandler
 from src.runtime.integrations.antigravity.artifact_writer import ArtifactWriter
 from src.runtime.application.process_user_request import ProcessUserRequest
@@ -10,7 +11,7 @@ from .error_handler import ErrorHandler
 
 def main():
 
-    artifacts = Path("artifacts")
+    artifacts = Path(".agents/artifacts")
     artifacts.mkdir(exist_ok=True)
 
     (
@@ -24,7 +25,9 @@ def main():
 
         conversation = RequestReader().read()
 
-        result = ProcessUserRequest().execute(
+        result = ProcessUserRequest(
+            build_runtime(),
+        ).execute(
             conversation=conversation,
         )
 

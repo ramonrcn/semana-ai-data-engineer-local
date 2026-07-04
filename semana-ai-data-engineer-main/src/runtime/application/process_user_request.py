@@ -2,9 +2,16 @@ from src.runtime.bootstrap import build_runtime
 from src.runtime.integrations.antigravity.models import ConversationPayload
 from src.runtime.integrations.antigravity.request_extractor import RequestExtractor
 from src.runtime.application.process_result import ProcessResult
+from src.runtime.runtime import AgentRuntime
 
 
 class ProcessUserRequest:
+
+    def __init__(
+        self,
+        runtime: AgentRuntime,
+    ):
+        self.runtime = runtime
 
     def execute(
         self,
@@ -32,9 +39,7 @@ class ProcessUserRequest:
                 transcript=None,
             )
 
-        runtime = build_runtime()
-
-        response = runtime.run(
+        response = self.runtime.run(
             capability_id="domain.shopagent-builder",
             objective=objective,
         )
