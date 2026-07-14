@@ -2,6 +2,7 @@ from src.runtime.bootstrap import build_runtime
 from src.runtime.integrations.antigravity.error_handler import ErrorHandler
 from src.runtime.integrations.antigravity.artifact_writer import ArtifactWriter
 from src.runtime.application.process_user_request import ProcessUserRequest
+from src.runtime.capabilities.rule_based import RuleBasedCapabilityDetector
 from pathlib import Path
 from datetime import datetime
 
@@ -26,7 +27,8 @@ def main():
         conversation = RequestReader().read()
 
         result = ProcessUserRequest(
-            build_runtime(),
+            runtime=build_runtime(),
+            detector=RuleBasedCapabilityDetector(),
         ).execute(
             conversation=conversation,
         )

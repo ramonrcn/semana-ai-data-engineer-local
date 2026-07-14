@@ -3,15 +3,17 @@ from src.runtime.integrations.antigravity.models import ConversationPayload
 from src.runtime.integrations.antigravity.request_extractor import RequestExtractor
 from src.runtime.application.process_result import ProcessResult
 from src.runtime.runtime import AgentRuntime
-
+from src.runtime.capabilities.detector import BaseCapabilityDetector
 
 class ProcessUserRequest:
 
     def __init__(
         self,
         runtime: AgentRuntime,
+        detector: BaseCapabilityDetector,
     ):
         self.runtime = runtime
+        self.detector = detector
 
     def execute(
         self,
@@ -31,6 +33,10 @@ class ProcessUserRequest:
                 or ""
             )
 
+            capability_id = self.detector.detect(
+                objective,
+            )
+
         except FileNotFoundError:
 
             return ProcessResult(
@@ -40,7 +46,7 @@ class ProcessUserRequest:
             )
 
         response = self.runtime.run(
-            capability_id="domain.shopagent-builder",
+            capability_id=capability_id,
             objective=objective,
         )
 

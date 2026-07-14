@@ -1,0 +1,7 @@
+Transcript path: artifacts\transcript.jsonl
+Transcript exists: False
+Parent path: artifacts
+Parent exists: True
+
+Parent contents:
+ - compiled_prompt.md
