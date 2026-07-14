@@ -2,8 +2,12 @@ from pathlib import Path
 import json
 import time
 
-from .event import ConversationEvent
-from .transcript import ConversationTranscript
+from src.runtime.conversation.transcript import (
+    ConversationTranscript,
+)
+from src.runtime.conversation.event import (
+    ConversationEvent,
+)
 
 
 class TranscriptLoader:

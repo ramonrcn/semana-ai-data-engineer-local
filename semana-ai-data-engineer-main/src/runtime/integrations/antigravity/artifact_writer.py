@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from .transcript import ConversationTranscript
+from src.runtime.conversation.transcript import ConversationTranscript
 
 
 class ArtifactWriter:
