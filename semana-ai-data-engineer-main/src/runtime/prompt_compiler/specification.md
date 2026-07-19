@@ -23,7 +23,7 @@
     Produce a deterministic prompt from the provided RuntimeContext.
     Preserve all selected knowledge in the final prompt.
     Preserve the order of the knowledge returned by KnowledgeSelector.
-    Preserve the order of the conversation history.
+    Preserve the order of every context element provided by RuntimeContext.
     
 ## 4. Non Responsibilities
     Never perform capability detection.
@@ -33,23 +33,19 @@
     Never call LLMs.
     Never execute tools.
 
-
 ## 5. Inputs
     RuntimeContext containing:
         - Objective
         - Capability
         - Selected knowledge
-        - Conversation
+        - EnvironmentTools
 
 ## 6. Outputs
     The PromptCompiler always returns:
         - A non-empty UTF-8 encoded prompt.
         - A deterministic prompt.
         - A prompt containing every required section.
-        - A prompt with the following sections in order:
-            - Objective
-            - Conversation
-            - Selected knowledge
+        - The prompt contains every required section defined by Prompt Structure.
 
 ## 7. Prompt Structure
     Section ordering is defined exclusively by PromptCompiler.
@@ -58,6 +54,23 @@
     Every section has a unique purpose.
     Sections never repeat.
     Sections are well-delimited.
+
+    Structure follows this order:
+        1 - System prompt.
+        2 - Execution rules.
+        3 - Objective.
+        4 - Selected knowledge.
+    Conversation history is intentionally omitted until RuntimeContext supports conversational context.
+
+### 7.1 Prompt Sections
+    System Prompt
+        Defines the LLM behavior.
+    Execution Rules
+        Defines mandatory runtime constraints.
+    Objective
+        Defines the current user objective.
+    Reference Knowledge
+        Contains retrieved documents preserving KnowledgeSelector ordering.
 
 ## 8. Invariants
     Equivalent RuntimeContext always produces equivalent prompts.
@@ -83,12 +96,10 @@
         - RuntimeContext contains no selected knowledge.
         - RuntimeContext contains an empty conversation.
         - Objective is empty or missing.
-        - Capability information is unavailable.
         - Duplicate knowledge entries are present.
         - Optional sections contain no content.
         - Extremely large knowledge contexts.
         - Invalid or malformed RuntimeContext.
-
 
 ## 11. Future Extensions
     This specification intentionally allows future enhancements without changing the component responsibilities, including:

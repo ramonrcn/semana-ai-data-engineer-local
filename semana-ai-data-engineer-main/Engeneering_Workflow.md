@@ -3,6 +3,12 @@ Specification defines the contracts.
 Code implements the contracts. 
 Tests verify the implementation. 
 Evals verify the behavior.
+Specification first. 
+Refactor before rewrite.
+One source of truth.
+
+Public interfaces should be the smallest possible interfaces that satisfy the specification.
+
 
 Every feature follows this lifecycle:
 
