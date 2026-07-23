@@ -11,6 +11,27 @@ from .error_handler import ErrorHandler
 
 
 def main():
+    # WIP - Antigravity testing
+    # import json
+    # import sys
+
+    # print("STDOUT")
+
+    # print("STDERR", file=sys.stderr)
+    # Path(".agents/artifacts/experiment.txt").write_text(
+    # "hook executou",
+    # encoding="utf-8",
+    # )
+
+    # from pathlib import Path
+    # from datetime import datetime
+
+    # Path(".agents/artifacts/preinvocation.txt").write_text(
+    #     datetime.now().isoformat(),
+    #     encoding="utf-8",
+    # )
+
+    # print("done")
 
     artifacts = Path(".agents/artifacts")
     artifacts.mkdir(exist_ok=True)
@@ -77,7 +98,6 @@ def main():
     )
 
     print("{}")
-
 
 if __name__ == "__main__":
     main()

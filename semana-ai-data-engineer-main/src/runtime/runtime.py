@@ -13,7 +13,7 @@ from .tracing.trace import RuntimeTrace
 from .tracing.printer import TracePrinter
 from .tracing.span import TraceSpan
 from .prompt.base import BasePromptCompiler
-from .prompt.markdown import MarkdownPromptCompiler
+from src.runtime.prompt_compiler.compiler import PromptCompiler
 from .knowledge.retrieved import RetrievedKnowledge
 
 
@@ -44,7 +44,7 @@ class AgentRuntime:
 
         self.prompt_compiler = (
             prompt_compiler
-            or MarkdownPromptCompiler()
+            or PromptCompiler()
         )
 
     def build_context(
