@@ -1,0 +1,55 @@
+uma técnica que uso em design reviews
+
+Sempre que alguém me apresenta um requisito...
+
+Eu faço exatamente sete perguntas.
+
+Sempre.
+
+As mesmas.
+
+As 7 perguntas do arquiteto
+
+Quando alguém escreve:
+
+O Runtime solicita uma inferência.
+
+Eu pergunto:
+
+1. Quem pede?
+
+No nosso caso:
+
+O Runtime.
+
+2. Para quem?
+
+LLM.
+
+3. O quê?
+
+Uma inferência.
+
+4. Baseada em quê?
+
+(Aqui ainda precisamos definir.)
+
+5. O que recebe de volta?
+
+(Ainda precisamos definir.)
+
+6. Quem valida?
+
+(Ainda precisamos definir.)
+
+7. O que acontece se der errado?
+
+(Ainda precisamos definir.)
+
+Percebe uma coisa curiosa?
+
+Nós ainda não escrevemos um documento.
+
+Mas já temos um roteiro.
+
+E esse roteiro pode ser aplicado a qualquer fronteira da sua arquitetura:
