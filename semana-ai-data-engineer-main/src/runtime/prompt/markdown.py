@@ -1,13 +1,13 @@
 from .base import BasePromptCompiler
 from ..context import RuntimeContext
-
+from .prompt import Prompt
 
 class MarkdownPromptCompiler(BasePromptCompiler):
 
     def compile(
         self,
         context: RuntimeContext,
-    ) -> str:
+    ) -> Prompt:
 
         prompt_parts = []
 
@@ -71,6 +71,6 @@ class MarkdownPromptCompiler(BasePromptCompiler):
                 knowledge.document.content
             )
 
-        return "\n".join(
-            prompt_parts
+        return Prompt(
+            text="\n".join(prompt_parts)
         )

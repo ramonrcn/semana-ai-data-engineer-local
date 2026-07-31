@@ -15,6 +15,7 @@ from .tracing.span import TraceSpan
 from .prompt.base import BasePromptCompiler
 from src.runtime.prompt_compiler.compiler import PromptCompiler
 from .knowledge.retrieved import RetrievedKnowledge
+from src.runtime.prompt import Prompt
 
 
 class AgentRuntime:
@@ -94,7 +95,7 @@ class AgentRuntime:
     def assemble_prompt(
         self,
             context: RuntimeContext,
-        ) -> str:
+        ) -> Prompt:
 
             return self.prompt_compiler.compile(
                 context
@@ -145,12 +146,12 @@ class AgentRuntime:
             )
 
             trace.prompt_size = len(
-                prompt
+                prompt.text
             )
 
             event.add(
                 prompt_size=len(
-                    prompt
+                    prompt.text
                 )
             )
         

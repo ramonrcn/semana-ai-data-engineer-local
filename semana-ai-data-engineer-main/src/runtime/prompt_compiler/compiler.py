@@ -1,3 +1,4 @@
+from src.runtime.prompt.prompt import Prompt
 from src.runtime.context import RuntimeContext
 
 
@@ -24,7 +25,7 @@ class PromptCompiler:
     def compile(
         self,
         runtime_context: RuntimeContext,
-    ) -> str:
+    ) -> Prompt:
 
         prompt_parts: list[str] = []
 
@@ -44,7 +45,9 @@ class PromptCompiler:
             self._build_reference_knowledge(runtime_context)
         )
 
-        return "\n".join(prompt_parts)
+        return Prompt(
+            text="\n".join(prompt_parts)
+        )
 
     def _build_system(
         self,

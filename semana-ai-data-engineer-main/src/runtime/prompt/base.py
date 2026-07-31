@@ -2,6 +2,7 @@ from abc import ABC
 from abc import abstractmethod
 
 from ..context import RuntimeContext
+from .prompt import Prompt
 
 
 class BasePromptCompiler(ABC):
@@ -10,5 +11,5 @@ class BasePromptCompiler(ABC):
     def compile(
         self,
         context: RuntimeContext,
-    ) -> str:
+    ) -> Prompt:
         ...

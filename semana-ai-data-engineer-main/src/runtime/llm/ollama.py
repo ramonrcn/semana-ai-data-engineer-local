@@ -1,6 +1,6 @@
 from openai import OpenAI
-
 from .base import BaseLLM
+from src.runtime.prompt import Prompt
 
 
 class OllamaLLM(BaseLLM):
@@ -23,7 +23,7 @@ class OllamaLLM(BaseLLM):
 
     def invoke(
         self,
-        prompt: str
+        prompt: Prompt
     ):
         print(f">>> USING OLLAMA: {self.model} <<<")
         response = self.client.chat.completions.create(
@@ -33,7 +33,7 @@ class OllamaLLM(BaseLLM):
             messages=[
                 {
                     "role": "user",
-                    "content": prompt
+                    "content": prompt.text
                 }
             ]
 
