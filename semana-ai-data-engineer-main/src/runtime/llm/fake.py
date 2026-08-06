@@ -1,11 +1,11 @@
 from .base import BaseLLM
-
+from src.runtime.prompt.prompt import Prompt
 
 class FakeLLM(BaseLLM):
 
     def invoke(
         self,
-        prompt: str
+        prompt: Prompt
     ):
         print(">>> USING FAKE LLM <<<")
         return f"""
@@ -13,7 +13,7 @@ PROMPT RECEIVED
 
 -------------------------
 
-{prompt[:1000]}
+{prompt.text[:1000]}
 
 -------------------------
 

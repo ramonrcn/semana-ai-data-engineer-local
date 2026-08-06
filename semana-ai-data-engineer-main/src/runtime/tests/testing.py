@@ -5,7 +5,6 @@ from src.runtime.knowledge.registry import KnowledgeRegistry
 from src.runtime.knowledge.selector import BaseKnowledgeSelector
 from src.runtime.knowledge.passthrough import  PassthroughKnowledgeSelector
 from src.runtime.prompt.base import BasePromptCompiler
-from src.runtime.prompt.markdown import MarkdownPromptCompiler
 from src.runtime.llm.base import BaseLLM
 from src.runtime.llm.fake import FakeLLM
 from src.runtime.bootstrap import build_runtime

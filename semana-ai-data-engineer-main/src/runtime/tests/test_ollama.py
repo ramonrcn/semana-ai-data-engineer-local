@@ -1,10 +1,10 @@
 from ..llm.ollama import OllamaLLM
-
+from src.runtime.prompt.prompt import Prompt
 
 llm = OllamaLLM()
 
 response = llm.invoke(
-    "Say hello in one sentence."
+    Prompt("Say hello in one sentence.")
 )
 
 print()

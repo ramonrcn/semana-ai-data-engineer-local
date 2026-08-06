@@ -1,6 +1,6 @@
 from openai import OpenAI
 from .base import BaseLLM
-from src.runtime.prompt import Prompt
+from src.runtime.prompt.prompt import Prompt
 
 
 class OllamaLLM(BaseLLM):

@@ -15,7 +15,7 @@ from .tracing.span import TraceSpan
 from .prompt.base import BasePromptCompiler
 from src.runtime.prompt_compiler.compiler import PromptCompiler
 from .knowledge.retrieved import RetrievedKnowledge
-from src.runtime.prompt import Prompt
+from src.runtime.prompt.prompt import Prompt
 
 
 class AgentRuntime:

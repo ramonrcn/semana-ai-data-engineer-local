@@ -108,11 +108,11 @@ total_chars = 0
 
 for document in context.knowledge:
 
-    chars = len(document.content)
+    chars = len(document.document.content)
     total_chars += chars
 
     print(
-        f"{document.id:<60} {chars:>8} chars"
+        f"{document.document.id:<60} {chars:>8} chars"
     )
 
 
@@ -148,7 +148,7 @@ artifacts.mkdir(exist_ok=True)
 prompt_path = artifacts / "compiled_prompt.md"
 
 prompt_path.write_text(
-    prompt,
+    prompt.text,
     encoding="utf-8",
 )
 
@@ -177,11 +177,11 @@ print(
 )
 
 print(
-    f"Prompt size        : {len(prompt):,} chars"
+    f"Prompt size        : {len(prompt.text):,} chars"
 )
 
 print(
-    f"Knowledge ratio    : {total_chars / len(prompt):.1%}"
+    f"Knowledge ratio    : {total_chars / len(prompt.text):.1%}"
 )
 
 print(

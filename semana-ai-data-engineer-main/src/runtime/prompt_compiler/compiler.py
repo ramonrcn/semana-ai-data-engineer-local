@@ -1,3 +1,4 @@
+from src.runtime.prompt.base import BasePromptCompiler
 from src.runtime.prompt.prompt import Prompt
 from src.runtime.context import RuntimeContext
 
@@ -19,7 +20,7 @@ _EXECUTION_RULES = """
             """
 
 
-class PromptCompiler:
+class PromptCompiler(BasePromptCompiler):
     """Compiles a RuntimeContext into a deterministic prompt."""
 
     def compile(

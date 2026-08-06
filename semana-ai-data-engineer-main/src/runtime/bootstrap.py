@@ -1,14 +1,14 @@
 from pathlib import Path
 
-from .runtime import AgentRuntime
-from .registry import CapabilityRegistry
-from .knowledge.registry import KnowledgeRegistry
-from .knowledge.selector import BaseKnowledgeSelector
-from .knowledge.passthrough import  PassthroughKnowledgeSelector
-from .prompt.base import BasePromptCompiler
-from .prompt.markdown import MarkdownPromptCompiler
-from .llm.base import BaseLLM
-from .llm.fake import FakeLLM
+from src.runtime.runtime import AgentRuntime
+from src.runtime.registry import CapabilityRegistry
+from src.runtime.knowledge.registry import KnowledgeRegistry
+from src.runtime.knowledge.selector import BaseKnowledgeSelector
+from src.runtime.knowledge.passthrough import  PassthroughKnowledgeSelector
+from src.runtime.prompt.base import BasePromptCompiler
+from src.runtime.prompt_compiler.compiler import PromptCompiler
+from src.runtime.llm.base import BaseLLM
+from src.runtime.llm.fake import FakeLLM
 
 def build_runtime(
     llm: BaseLLM | None = None,
@@ -47,7 +47,7 @@ def build_runtime(
 
     prompt_compiler = (
         prompt_compiler
-        or MarkdownPromptCompiler()
+        or PromptCompiler()
     )
 
     return AgentRuntime(

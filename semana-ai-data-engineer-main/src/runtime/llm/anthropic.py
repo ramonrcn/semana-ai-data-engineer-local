@@ -1,5 +1,5 @@
 from .base import BaseLLM
-
+from src.runtime.prompt.prompt import Prompt
 
 class AnthropicLLM(
     BaseLLM
@@ -13,9 +13,9 @@ class AnthropicLLM(
 
     def invoke(
         self,
-        prompt: str
+        prompt: Prompt
     ):
 
         return self.client.invoke(
-            prompt
+            prompt.text
         )

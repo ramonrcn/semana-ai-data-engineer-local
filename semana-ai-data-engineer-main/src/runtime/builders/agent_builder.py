@@ -24,15 +24,19 @@ class AgentBuilder:
         capability_id: str
     ) -> AgentConfig:
 
+        context = self.runtime.build_context(
+            capability_id=capability_id,
+            objective=""
+        )
+
         system_prompt = (
             self.runtime
             .assemble_prompt(
-                capability_id,
-                objective=""
+                context
             )
         )
 
         return AgentConfig(
             capability_id=capability_id,
-            system_instructions=system_prompt
+            system_instructions=system_prompt.text
         )
