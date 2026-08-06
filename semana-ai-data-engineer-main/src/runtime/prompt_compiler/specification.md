@@ -40,6 +40,17 @@
         - Selected knowledge
         - EnvironmentTools
 
+### 5.1 - EnvironmentTools
+    EnvironmentTools are part of RuntimeContext but are not serialized
+    as tool definitions by PromptCompiler.
+
+    PromptCompiler may provide general tool-usage awareness through
+    Execution Rules.
+
+    Concrete tool availability, schemas, and invocation contracts are
+    owned by the Runtime tool execution layer and are supplied separately
+    to the LLM.
+
 ## 6. Outputs
     The PromptCompiler always returns:
         - A non-empty UTF-8 encoded prompt.
@@ -78,7 +89,7 @@
     RuntimeContext is never mutated.
     Output is always a valid UTF-8 prompt.
     Section ordering is deterministic.
-    No information is silently discarded.
+    No prompt-relevant information owned by PromptCompiler is silently discarded.
 
 ## 9. Acceptance Criteria
     A PromptCompiler implementation is considered valid if it satisfies all of the following conditions:
