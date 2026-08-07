@@ -1,4 +1,5 @@
 from .detector import BaseCapabilityDetector
+from src.runtime.exceptions import CapabilityNotFoundError
 
 
 class RuleBasedCapabilityDetector(
@@ -15,6 +16,6 @@ class RuleBasedCapabilityDetector(
         if "pydantic" in objective:
             return "domain.shopagent-builder"
 
-        raise NotImplementedError(
+        raise CapabilityNotFoundError(
             f"No capability found for objective: {objective}"
         )

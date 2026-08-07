@@ -1,19 +1,11 @@
-from IPython.core import events
-from anthropic.types.beta import beta_managed_agents_agent_tool_config_params
-from IPython.core import interactiveshell
-from anthropic.types.beta import beta_managed_agents_agent_tool_config_params
 from .registry import CapabilityRegistry
 from .knowledge.registry import KnowledgeRegistry
 from .knowledge.selector import BaseKnowledgeSelector
-from .knowledge.passthrough import (
-    PassthroughKnowledgeSelector
-)
 from .context import RuntimeContext
 from .tracing.trace import RuntimeTrace
 from .tracing.printer import TracePrinter
 from .tracing.span import TraceSpan
 from .prompt.base import BasePromptCompiler
-from src.runtime.prompt_compiler.compiler import PromptCompiler
 from .knowledge.retrieved import RetrievedKnowledge
 from src.runtime.prompt.prompt import Prompt
 
@@ -25,10 +17,8 @@ class AgentRuntime:
         capability_registry: CapabilityRegistry,
         knowledge_registry: KnowledgeRegistry,
         llm,
-        knowledge_selector: (
-            BaseKnowledgeSelector | None
-        ) = None,
-        prompt_compiler: BasePromptCompiler | None = None,
+        knowledge_selector: BaseKnowledgeSelector,
+        prompt_compiler: BasePromptCompiler,
     ):
 
         self.capabilities = capability_registry
@@ -38,15 +28,9 @@ class AgentRuntime:
         self.llm = llm
 
         # Strategy responsible for selecting which KBs enter the prompt.
-        self.knowledge_selector = (
-            knowledge_selector
-            or PassthroughKnowledgeSelector()
-        )
+        self.knowledge_selector = knowledge_selector
 
-        self.prompt_compiler = (
-            prompt_compiler
-            or PromptCompiler()
-        )
+        self.prompt_compiler = prompt_compiler
 
     def build_context(
         self,

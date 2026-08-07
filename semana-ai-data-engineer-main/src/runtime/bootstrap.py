@@ -1,5 +1,4 @@
 from pathlib import Path
-
 from src.runtime.runtime import AgentRuntime
 from src.runtime.registry import CapabilityRegistry
 from src.runtime.knowledge.registry import KnowledgeRegistry
@@ -9,6 +8,9 @@ from src.runtime.prompt.base import BasePromptCompiler
 from src.runtime.prompt_compiler.compiler import PromptCompiler
 from src.runtime.llm.base import BaseLLM
 from src.runtime.llm.fake import FakeLLM
+from src.runtime.application.process_user_request import ProcessUserRequest
+from src.runtime.capabilities.detector import BaseCapabilityDetector
+from src.runtime.capabilities.rule_based import RuleBasedCapabilityDetector
 
 def build_runtime(
     llm: BaseLLM | None = None,
@@ -63,3 +65,23 @@ def build_runtime(
         prompt_compiler,
 
     )    
+
+def build_process_user_request(
+    runtime: AgentRuntime | None = None,
+    detector: BaseCapabilityDetector | None = None,
+) -> ProcessUserRequest:
+
+    runtime = (
+        runtime
+        or build_runtime()
+    )
+
+    detector = (
+        detector
+        or RuleBasedCapabilityDetector()
+    )
+
+    return ProcessUserRequest(
+        runtime=runtime,
+        detector=detector,
+    )

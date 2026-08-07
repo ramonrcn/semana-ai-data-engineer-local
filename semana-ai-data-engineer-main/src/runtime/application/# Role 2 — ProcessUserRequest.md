@@ -36,12 +36,52 @@ the information required to fulfill its responsibility.
 ---
 
 ## It returns
+- ProcessSuccess or RuntimeFailure, according to the Output Contract.
 
-- A successful Runtime inference response.
+---
 
-or
+## Output Contract
 
-- A structured Runtime error.
+ProcessUserRequest returns exactly one of:
+
+- ProcessSuccess
+  - represents a successful Runtime execution
+  - contains the Runtime response
+
+- RuntimeFailure
+  - represents a failed Runtime execution
+  - contains at least:
+    - a machine-readable error code
+    - a human-readable error message
+
+Success and failure are mutually exclusive outcomes.
+
+A Runtime failure must never be represented as a successful
+empty response.
+
+---
+
+## Error Contract
+
+Runtime errors are failures that occur after a valid RuntimeRequest
+has entered the application pipeline.
+
+Each Runtime component is responsible for signaling when it cannot
+satisfy its own contract.
+
+A Runtime failure must stop pipeline execution and must never be
+represented as a successful empty response.
+
+ProcessUserRequest is responsible for returning either:
+- a successful Runtime response
+- a structured Runtime failure
+
+A structured Runtime failure must provide at least:
+- a machine-readable error code
+- a human-readable error message
+
+Runtime failures must preserve the semantic meaning of the original
+component failure.
 
 ---
 

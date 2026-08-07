@@ -1,9 +1,12 @@
-from src.runtime.bootstrap import build_runtime
-from src.runtime.integrations.antigravity.models import ConversationPayload
-from src.runtime.integrations.antigravity.request_extractor import RequestExtractor
-from src.runtime.application.process_result import ProcessResult
+from src.runtime.application.request import RuntimeRequest
+from src.runtime.application.process_result import (
+    ProcessSuccess,
+    RuntimeFailure,
+)
 from src.runtime.runtime import AgentRuntime
 from src.runtime.capabilities.detector import BaseCapabilityDetector
+from src.runtime.exceptions import CapabilityNotFoundError
+
 
 class ProcessUserRequest:
 
@@ -17,41 +20,27 @@ class ProcessUserRequest:
 
     def execute(
         self,
-        conversation: ConversationPayload,
-    ) -> ProcessResult:
+        request: RuntimeRequest,
+    ) -> ProcessSuccess | RuntimeFailure:
 
         try:
 
-            extractor = RequestExtractor()
-
-            transcript = extractor.extract(
-                conversation,
-            )
-
-            objective = (
-                transcript.last_user_request()
-                or ""
-            )
-
             capability_id = self.detector.detect(
-                objective,
+                request.objective,
             )
 
-        except FileNotFoundError:
-
-            return ProcessResult(
-                response="",
-                conversation=conversation,
-                transcript=None,
+            response = self.runtime.run(
+                capability_id=capability_id,
+                objective=request.objective,
             )
 
-        response = self.runtime.run(
-            capability_id=capability_id,
-            objective=objective,
-        )
+            return ProcessSuccess(
+                response=response,
+            )
 
-        return ProcessResult(
-            response=response,
-            conversation=conversation,
-            transcript=transcript,
-        )
+        except CapabilityNotFoundError as exc:
+
+            return RuntimeFailure(
+                code="capability_not_found",
+                message=str(exc),
+            )

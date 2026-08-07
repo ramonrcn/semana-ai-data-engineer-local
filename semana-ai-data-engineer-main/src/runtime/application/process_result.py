@@ -1,14 +1,15 @@
 from dataclasses import dataclass
 
-from src.runtime.integrations.antigravity.models import ConversationPayload
-from src.runtime.conversation.transcript import ConversationTranscript
 
-
-@dataclass
-class ProcessResult:
+@dataclass(frozen=True, slots=True)
+class ProcessSuccess:
 
     response: str
 
-    conversation: ConversationPayload
 
-    transcript: ConversationTranscript
+@dataclass(frozen=True, slots=True)
+class RuntimeFailure:
+
+    code: str
+
+    message: str

@@ -2,7 +2,7 @@
 
 ## The Request Gateway is responsible for:
  - accepting inference requests from external clients and translating them into the Runtime's internal request representation.
- - if somehting goes wrong, it should send to Runtime a error message
+ - if something goes wrong before a valid RuntimeRequest can be produced, the Gateway must stop processing and surface an explicit Gateway error.
 
 ## It should grant:
  - that the solicitation is never sent being empty or null
@@ -14,67 +14,19 @@
  - execute inferences
  - apply Runtime business rules
 
-## TODO: Define the Runtime error propagation strategy for invalid input and infrastructure failures.
--------
-# Role 2 — ProcessUserRequest
+## Error Contract
 
-## Responsibility
+The Request Gateway owns failures that occur before a valid
+RuntimeRequest can be produced.
 
-Coordinate the Runtime inference pipeline by invoking the appropriate
-components in the correct order and ensuring that each stage receives
-the information required to fulfill its responsibility.
+Gateway errors include:
+- malformed external input
+- failure to translate the external request
+- unavailable required request data
+- empty or null objective
 
----
+A Gateway failure must stop request processing.
+An invalid request must never reach ProcessUserRequest.
 
-## It should guarantee
-
-- Every pipeline stage is executed in the expected order.
-- The output of one stage becomes the validated input of the next stage.
-- The inference pipeline stops whenever a component cannot satisfy its contract.
-- Infrastructure failures are propagated using the Runtime error strategy.
-- Business components remain isolated from each other.
-
----
-
-## It should never
-
-- Detect capabilities.
-- Select knowledge.
-- Compile prompts.
-- Communicate directly with an LLM provider.
-- Execute business logic belonging to another component.
-- Modify the output produced by another component except for orchestration purposes.
-
----
-
-## It receives
-
-- A valid Runtime inference request.
-
----
-
-## It returns
-
-- A successful Runtime inference response.
-
-or
-
-- A structured Runtime error.
-
----
-
-## Dependencies
-
-- Capability Detector
-- Knowledge Selector
-- Prompt Compiler
-- LLM Adapter
-
----
-
-## It must not know
-
-- Provider implementation details.
-- Knowledge retrieval implementation.
-- Prompt compilation rules.
-- Vector search algorithms.
+Gateway failures must be represented as explicit Gateway errors
+rather than successful empty requests.

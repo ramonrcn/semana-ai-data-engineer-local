@@ -1,38 +1,23 @@
-from src.runtime.bootstrap import build_runtime
+
+from src.runtime.application import process_result
 from src.runtime.integrations.antigravity.error_handler import ErrorHandler
 from src.runtime.integrations.antigravity.artifact_writer import ArtifactWriter
-from src.runtime.application.process_user_request import ProcessUserRequest
-from src.runtime.capabilities.rule_based import RuleBasedCapabilityDetector
+from src.runtime.bootstrap import build_process_user_request
 from pathlib import Path
 from datetime import datetime
-
+from src.runtime.application.request import RuntimeRequest
 from .request_reader import RequestReader
 from .error_handler import ErrorHandler
+from .request_extractor import RequestExtractor
+from .exceptions import InvalidRequestError
+from src.runtime.application.process_result import (
+    ProcessSuccess,
+    RuntimeFailure,
+)
 
 
 def main():
-    # WIP - Antigravity testing
-    # import json
-    # import sys
-
-    # print("STDOUT")
-
-    # print("STDERR", file=sys.stderr)
-    # Path(".agents/artifacts/experiment.txt").write_text(
-    # "hook executou",
-    # encoding="utf-8",
-    # )
-
-    # from pathlib import Path
-    # from datetime import datetime
-
-    # Path(".agents/artifacts/preinvocation.txt").write_text(
-    #     datetime.now().isoformat(),
-    #     encoding="utf-8",
-    # )
-
-    # print("done")
-
+   
     artifacts = Path(".agents/artifacts")
     artifacts.mkdir(exist_ok=True)
 
@@ -47,29 +32,64 @@ def main():
 
         conversation = RequestReader().read()
 
-        result = ProcessUserRequest(
-            runtime=build_runtime(),
-            detector=RuleBasedCapabilityDetector(),
-        ).execute(
-            conversation=conversation,
+        transcript = RequestExtractor().extract(
+            conversation,
         )
 
-        (
-            artifacts / "runtime_response.md"
-        ).write_text(
-            result.response,
-            encoding="utf-8",
+        objective = transcript.last_user_request()
+
+        if not objective:
+            raise InvalidRequestError(
+                "Antigravity request contains no user objective."
+            )
+
+        request = RuntimeRequest(
+            objective=objective,
         )
+
+        result = (
+            build_process_user_request()
+            .execute(
+                request=request,
+            )
+        )
+
+        if isinstance(
+            result,
+            ProcessSuccess,
+        ):
+
+            (
+                artifacts / "runtime_response.md"
+            ).write_text(
+                result.response,
+                encoding="utf-8",
+            )
+
+        elif isinstance(
+            result,
+            RuntimeFailure,
+        ):
+
+            (
+                artifacts / "runtime_error.txt"
+            ).write_text(
+                (
+                    f"code={result.code}\n"
+                    f"message={result.message}"
+                ),
+                encoding="utf-8",
+            )
 
         ArtifactWriter().write_transcript_debug(
-            result.transcript,
+            transcript,
             artifacts,
         )
 
         (
             artifacts / "last_user_request.txt"
         ).write_text(
-            result.transcript.last_user_request()
+            transcript.last_user_request()
             or "None",
             encoding="utf-8",
         )

@@ -1,42 +1,12 @@
 from pathlib import Path
+from src.runtime.registry import CapabilityRegistry
+from src.runtime.knowledge.registry import KnowledgeRegistry
+from src.runtime.runtime import AgentRuntime
+from src.runtime.builders.agent_builder import AgentBuilder
+from src.runtime.bootstrap import build_runtime
 
-from src.runtime.registry import (
-    CapabilityRegistry
-)
 
-from src.runtime.knowledge.registry import (
-    KnowledgeRegistry
-)
-
-from src.runtime.runtime import (
-    AgentRuntime
-)
-
-from src.runtime.builders.agent_builder import (
-    AgentBuilder
-)
-
-cap_registry = (
-    CapabilityRegistry()
-)
-
-cap_registry.load_directory(
-    Path(".claude/agents")
-)
-
-kb_registry = (
-    KnowledgeRegistry()
-)
-
-kb_registry.load_directory(
-    Path(".claude/kb")
-)
-
-runtime = AgentRuntime(
-    cap_registry,
-    kb_registry,
-    llm=None
-)
+runtime = build_runtime()
 
 builder = AgentBuilder(
     runtime
